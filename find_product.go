@@ -95,10 +95,19 @@ func ReadInput() (int, int, int) {
 	return input[0], input[1], input[2]
 }
 
-func main() {
-	m := ParseProductInfo(csvPath)	
-	x,y,id := ReadInput()
-	
-	
-	fmt.Print(x,y,m[id])
+// FindDest returns the destination given init position & product to fetch
+func FindDest(x, y int, prod Product) (int, int) {
+	if x < prod.x {
+		return prod.x - 1, prod.y
+	}
+	return prod.x + 1, prod.y
 }
+
+func main() {
+	m := ParseProductInfo(csvPath)
+	x, y, id := ReadInput()
+
+	fmt.Print(x, y, m[id])
+}
+
+// CONSIDER ON THE SAME LINE SITUATION! e.g.: (0,1) -> (3,1)
