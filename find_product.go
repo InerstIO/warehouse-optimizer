@@ -16,6 +16,19 @@ const (
 	pathWidth   = 1.0
 )
 
+// Product defines the information of a product
+type Product struct {
+	id         int
+	pos        Point
+	l, r, u, d bool
+	//num int
+}
+
+// Point defines the location of a point
+type Point struct {
+	x, y int
+}
+
 //ReadCSV returns a 2D array of string from the csv file
 func ReadCSV(path string) ([][]string, error) {
 	file, err := os.Open(path) // For read access.
@@ -31,13 +44,6 @@ func ReadCSV(path string) ([][]string, error) {
 	return records, err
 }
 
-// Product defines the information of a product
-type Product struct {
-	id, x, y   int
-	l, r, u, d bool
-	//num int
-}
-
 func coordinateConverter(x, y int) (int, int) {
 	return 2*x + 1, 2*y + 1
 }
@@ -48,6 +54,8 @@ func posAssigner(prod *Product) *Product {
 }
 
 // ParseProductInfo returns a map that includes product info
+// TO-DO: ALSO FIND MAX/MIN INFO
+// MAYBE NOT NECESSARY?
 func ParseProductInfo(path string) map[int]Product {
 	records, err := ReadCSV(path)
 	if err != nil {
@@ -71,7 +79,7 @@ func ParseProductInfo(path string) map[int]Product {
 			}
 		}
 		temp[1], temp[2] = coordinateConverter(temp[1], temp[2])
-		prod := Product{id: temp[0], x: temp[1], y: temp[2]}
+		prod := Product{id: temp[0], pos: Point{temp[1], temp[2]}}
 		m[temp[0]] = *posAssigner(&prod)
 	}
 	return m
@@ -96,18 +104,33 @@ func ReadInput() (int, int, int) {
 }
 
 // FindDest returns the destination given init position & product to fetch
-func FindDest(x, y int, prod Product) (int, int) {
-	if x < prod.x {
-		return prod.x - 1, prod.y
+func FindDest(src Point, prod Product) Point {
+	if src.x < prod.pos.x {
+		return Point{prod.pos.x - 1, prod.pos.y}
 	}
-	return prod.x + 1, prod.y
+	return Point{prod.pos.x + 1, prod.pos.y}
+}
+
+// FindPath returns the array of turning points on the path
+// inclduing source and destination & length of the path
+func FindPath(src Point, prod Product) []Point {
+	dest := FindDest(src, prod)
+	var path []Point
+	if src.x != dest.x && src.y != dest.y {
+		path = []Point{src, {dest.x, src.y}, dest}
+	} else if src.x == dest.x {
+		path = []Point{src, dest}
+	} else if src.y == dest.y {
+		path = []Point{src, {src.x, src.y + 1}, {dest.x, src.y + 1}, dest}
+	}
+	return path
 }
 
 func main() {
 	m := ParseProductInfo(csvPath)
 	x, y, id := ReadInput()
 
-	fmt.Print(x, y, m[id])
+	fmt.Print(FindPath(Point{x, y}, m[id]))
 }
 
 // CONSIDER ON THE SAME LINE SITUATION! e.g.: (0,1) -> (3,1)
