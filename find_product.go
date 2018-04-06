@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"log"
 	"encoding/csv"
+	"fmt"
+	"log"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -31,8 +31,8 @@ func ReadCSV(path string) ([][]string, error) {
 // Product defines the information of a product
 type Product struct {
 	id int
-	x int
-	y int
+	x  int
+	y  int
 	//num int
 }
 
@@ -49,11 +49,11 @@ func ParseProductInfo(path string) map[int]Product {
 		m = make(map[int]Product)
 		for i := range temp {
 			s[i] = strings.TrimSpace(s[i])
-			switch i{
+			switch i {
 			case 0:
-				temp[i], err =strconv.Atoi(s[i])
+				temp[i], err = strconv.Atoi(s[i])
 			default:
-				temp[i], err =strconv.Atoi(strings.Split(s[i], ".")[0])
+				temp[i], err = strconv.Atoi(strings.Split(s[i], ".")[0])
 			}
 			if err != nil {
 				log.Fatal(err)
