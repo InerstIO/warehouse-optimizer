@@ -77,7 +77,28 @@ func ParseProductInfo(path string) map[int]Product {
 	return m
 }
 
+// ReadInput returns 3 int from stdin
+func ReadInput() (int, int, int) {
+	var strInput [3]string
+	var input [3]int
+	_, err := fmt.Scan(&strInput[0], &strInput[1], &strInput[2])
+	if err != nil {
+		log.Fatal(err)
+	}
+	for i := range strInput {
+		strInput[i] = strings.TrimSpace(strInput[i])
+		input[i], err = strconv.Atoi(strInput[i])
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	return input[0], input[1], input[2]
+}
+
 func main() {
-	m := ParseProductInfo(csvPath)
-	fmt.Println(m[2629382])
+	m := ParseProductInfo(csvPath)	
+	x,y,id := ReadInput()
+	
+	
+	fmt.Print(x,y,m[id])
 }
