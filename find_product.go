@@ -9,7 +9,12 @@ import (
 	"strings"
 )
 
-var csvPath = "warehouse-grid.csv"
+const (
+	csvPath     = "warehouse-grid.csv"
+	shelfLength = 1.0
+	shelfWidth  = 1.0
+	pathWidth   = 1.0
+)
 
 //ReadCSV returns a 2D array of string from the csv file
 func ReadCSV(path string) ([][]string, error) {
@@ -18,22 +23,28 @@ func ReadCSV(path string) ([][]string, error) {
 		log.Fatal(err)
 	}
 	defer file.Close()
-
 	r := csv.NewReader(file)
 	records, err := r.ReadAll()
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	return records, err
 }
 
 // Product defines the information of a product
 type Product struct {
-	id int
-	x  int
-	y  int
+	id, x, y   int
+	l, r, u, d bool
 	//num int
+}
+
+func coordinateConverter(x, y int) (int, int) {
+	return 2*x + 1, 2*y + 1
+}
+
+func posAssigner(prod *Product) *Product {
+	prod.l, prod.r = true, true
+	return prod
 }
 
 // ParseProductInfo returns a map that includes product info
@@ -59,8 +70,9 @@ func ParseProductInfo(path string) map[int]Product {
 				log.Fatal(err)
 			}
 		}
-		prod := Product{temp[0], temp[1], temp[2]}
-		m[temp[0]] = prod
+		temp[1], temp[2] = coordinateConverter(temp[1], temp[2])
+		prod := Product{id: temp[0], x: temp[1], y: temp[2]}
+		m[temp[0]] = *posAssigner(&prod)
 	}
 	return m
 }
