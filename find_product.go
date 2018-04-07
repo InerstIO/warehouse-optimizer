@@ -165,6 +165,11 @@ func main() {
 	fmt.Print("Please input x y prod_id:\n")
 	x, y, id := ReadInput()
 
-	path, length := FindPath(Point{x, y}, m[id])
-	fmt.Printf("%v\nlength: %v", path, length)
+	prod, ok := m[id]
+	if ok {
+		path, length := FindPath(Point{x, y}, prod)
+		fmt.Printf("%v\nlength: %v\n", path, length)
+	} else {
+		fmt.Print("prod_id not exist.\n")
+	}
 }
