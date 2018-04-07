@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -13,7 +14,8 @@ const (
 	csvPath     = "warehouse-grid.csv"
 	shelfLength = 1.0
 	shelfWidth  = 1.0
-	pathWidth   = 1.0
+	pathWidthX  = 1.0
+	pathWidthY  = 1.0
 )
 
 // Product defines the information of a product
@@ -116,7 +118,7 @@ func FindDest(src Point, prod Product) Point {
 
 // FindPath returns the array of turning points on the path
 // inclduing source and destination & length of the path
-func FindPath(src Point, prod Product) Path {
+func FindPath(src Point, prod Product) (Path, float64) {
 	dest := FindDest(src, prod)
 	var path Path
 	if src.x != dest.x && src.y != dest.y {
@@ -127,7 +129,20 @@ func FindPath(src Point, prod Product) Path {
 	} else if src.y == dest.y {
 		path = []Point{src, {src.x, src.y + 1}, {dest.x, src.y + 1}, dest}
 	}
-	return path
+	return path, PathLength(path)
+}
+
+// PathLength returns the length of the path
+func PathLength(path Path) float64 {
+	if cap(path) < 1 {
+		return 0.0
+	}
+	var dx, dy float64
+	for i := range path[1:] {
+		dx += math.Abs(float64(path[i+1].x-path[i].x)) * (shelfLength + pathWidthX) / 2
+		dy += math.Abs(float64(path[i+1].y-path[i].y)) * (shelfWidth + pathWidthY) / 2
+	}
+	return dx + dy
 }
 
 func (p Point) String() string {
@@ -147,7 +162,9 @@ func (path Path) String() string {
 
 func main() {
 	m := ParseProductInfo(csvPath)
+	fmt.Print("Please input x y prod_id:\n")
 	x, y, id := ReadInput()
 
-	fmt.Print(FindPath(Point{x, y}, m[id]))
+	path, length := FindPath(Point{x, y}, m[id])
+	fmt.Printf("%v\nlength: %v", path, length)
 }
