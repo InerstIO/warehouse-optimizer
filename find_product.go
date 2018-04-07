@@ -29,6 +29,9 @@ type Point struct {
 	x, y int
 }
 
+// Path is a slice of Points
+type Path []Point
+
 //ReadCSV returns a 2D array of string from the csv file
 func ReadCSV(path string) ([][]string, error) {
 	file, err := os.Open(path) // For read access.
@@ -113,9 +116,9 @@ func FindDest(src Point, prod Product) Point {
 
 // FindPath returns the array of turning points on the path
 // inclduing source and destination & length of the path
-func FindPath(src Point, prod Product) []Point {
+func FindPath(src Point, prod Product) Path {
 	dest := FindDest(src, prod)
-	var path []Point
+	var path Path
 	if src.x != dest.x && src.y != dest.y {
 		path = []Point{src, {dest.x, src.y}, dest}
 	} else if src.x == dest.x {
@@ -126,11 +129,21 @@ func FindPath(src Point, prod Product) []Point {
 	return path
 }
 
+func (p Point) String() string {
+	return fmt.Sprintf("(%d, %d)", p.x, p.y)
+}
+
+func (path Path) String() string {
+	s := fmt.Sprint(path[0])
+	for _, p := range path[1:] {
+		s += fmt.Sprintf("->%v", p)
+	}
+	return s
+}
+
 func main() {
 	m := ParseProductInfo(csvPath)
 	x, y, id := ReadInput()
 
 	fmt.Print(FindPath(Point{x, y}, m[id]))
 }
-
-// CONSIDER ON THE SAME LINE SITUATION! e.g.: (0,1) -> (3,1)
