@@ -121,6 +121,7 @@ func FindPath(src Point, prod Product) Path {
 	var path Path
 	if src.x != dest.x && src.y != dest.y {
 		path = []Point{src, {dest.x, src.y}, dest}
+	} else if src.x == dest.x && src.y == dest.y {
 	} else if src.x == dest.x {
 		path = []Point{src, dest}
 	} else if src.y == dest.y {
@@ -134,6 +135,9 @@ func (p Point) String() string {
 }
 
 func (path Path) String() string {
+	if cap(path) < 1 {
+		return "Don't need to move."
+	}
 	s := fmt.Sprint(path[0])
 	for _, p := range path[1:] {
 		s += fmt.Sprintf("->%v", p)
