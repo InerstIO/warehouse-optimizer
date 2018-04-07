@@ -67,10 +67,10 @@ func ParseProductInfo(path string) map[int]Product {
 		log.Fatal(err)
 	}
 	var m map[int]Product
+	m = make(map[int]Product)
 	for _, s := range records {
 		var temp [3]int
 		var err error
-		m = make(map[int]Product)
 		for i := range temp {
 			s[i] = strings.TrimSpace(s[i])
 			switch i {
