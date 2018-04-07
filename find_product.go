@@ -121,13 +121,16 @@ func FindDest(src Point, prod Product) Point {
 func FindPath(src Point, prod Product) (Path, float64) {
 	dest := FindDest(src, prod)
 	var path Path
-	if src.x != dest.x && src.y != dest.y {
-		path = []Point{src, {dest.x, src.y}, dest}
-	} else if src.x == dest.x && src.y == dest.y {
-	} else if src.x == dest.x {
+	switch {
+	case src.x == dest.x && src.y == dest.y:
+	case src.x == dest.x:
 		path = []Point{src, dest}
-	} else if src.y == dest.y {
+	case src.y%2 == 1 && src.y < dest.y:
 		path = []Point{src, {src.x, src.y + 1}, {dest.x, src.y + 1}, dest}
+	case src.y%2 == 1 && src.y >= dest.y:
+		path = []Point{src, {src.x, src.y - 1}, {dest.x, src.y - 1}, dest}
+	default:
+		path = []Point{src, {dest.x, src.y}, dest}
 	}
 	return path, PathLength(path)
 }
