@@ -167,6 +167,9 @@ func main() {
 	m := ParseProductInfo(csvPath)
 	fmt.Print("Please input x y prod_id:\n")
 	x, y, id := ReadInput()
+	if x*y%2 == 1 {
+		log.Fatal("Cannot start on a shelf.")
+	}
 
 	prod, ok := m[id]
 	if ok {
