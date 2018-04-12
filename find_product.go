@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	csvPath     = "warehouse-grid.csv"
+	gridPath     = "warehouse-grid.csv"
 	shelfLength = 1.0
 	shelfWidth  = 1.0
 	pathWidthX  = 1.0
@@ -90,6 +90,29 @@ func ParseProductInfo(path string) map[int]Product {
 	return m
 }
 
+// ParesOrderInfo returns a list of orders
+// Waiting for a fix of the input file
+func ParesOrderInfo(path string) [][]int {
+	records, err := ReadCSV(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var orders[][] int
+	for _, s := range records {
+		var err error
+		order := make([]int, len(s))
+		for i := range s {
+			s[i] = strings.TrimSpace(s[i])
+			order[i], err = strconv.Atoi(s[i])
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		orders = append(orders, order)
+	}
+	return orders
+}
+
 // ReadInput returns 3 int from stdin
 func ReadInput() (int, int, int) {
 	var strInput [3]string
@@ -164,7 +187,7 @@ func (path Path) String() string {
 }
 
 func main() {
-	m := ParseProductInfo(csvPath)
+	/*m := ParseProductInfo(gridPath)
 	fmt.Print("Please input x y prod_id:\n")
 	x, y, id := ReadInput()
 	if x*y%2 == 1 {
@@ -177,5 +200,7 @@ func main() {
 		fmt.Printf("%v\nlength: %v\n", path, length)
 	} else {
 		fmt.Print("prod_id not exist.\n")
-	}
+	}*/
+	//fmt.Print(ParesOrderInfo("warehouse-orders-v01.csv"))
+	fmt.Print(ParesOrderInfo("test.csv"))
 }
