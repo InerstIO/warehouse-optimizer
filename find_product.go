@@ -20,7 +20,8 @@ func main() {
 
 	prod, ok := m[id]
 	if ok {
-		path, length := warehouse.FindPath(warehouse.Point{x, y}, prod)
+		src := warehouse.Point{x, y}
+		path, length := warehouse.FindPath(src, warehouse.FindDest(src, prod))
 		fmt.Printf("%v\nlength: %v\n", path, length)
 	} else {
 		fmt.Print("prod_id not exist.\n")

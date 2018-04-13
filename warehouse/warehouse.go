@@ -163,8 +163,7 @@ func FindDest(src Point, prod Product) Point {
 
 // FindPath returns the array of turning points on the path
 // inclduing source and destination & length of the path
-func FindPath(src Point, prod Product) (Path, float64) {
-	dest := FindDest(src, prod)
+func FindPath(src Point, dest Point) (Path, float64) {
 	var path Path
 	switch {
 	case src.X == dest.X && src.Y == dest.Y:
