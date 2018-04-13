@@ -161,11 +161,11 @@ func ReadOrder() [][]int {
 	return [][]int{order}
 }
 
-// ReadInput returns 3 int from stdin
-func ReadInput() (int, int, int) {
-	var strInput [3]string
-	var input [3]int
-	_, err := fmt.Scan(&strInput[0], &strInput[1], &strInput[2])
+// ReadInput returns 2 int from stdin
+func ReadInput() (int, int) {
+	var strInput [2]string
+	var input [2]int
+	_, err := fmt.Scan(&strInput[0], &strInput[1])
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -176,7 +176,7 @@ func ReadInput() (int, int, int) {
 			log.Fatal(err)
 		}
 	}
-	return input[0], input[1], input[2]
+	return input[0], input[1]
 }
 
 // FindDest returns the destination given init position & product to fetch
