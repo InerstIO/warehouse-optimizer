@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"bufio"
 )
 
 const (
@@ -113,6 +114,27 @@ func ParesOrderInfo(path string) [][]int {
 	return orders
 }
 
+// ReadOredr returns a list of "an" order to be compatible with ParesOrderInfo
+// product_id should be separated by space from stdin
+func ReadOrder() [][]int {
+	r := bufio.NewReader(os.Stdin)
+	strInput, err := r.ReadString('\n')
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := strings.Split(strInput, " ")
+	order := make([]int, len(s))
+		for i := range s {
+			s[i] = strings.TrimSpace(s[i])
+			order[i], err = strconv.Atoi(s[i])
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	return [][]int{order}
+}
+
+
 // ReadInput returns 3 int from stdin
 func ReadInput() (int, int, int) {
 	var strInput [3]string
@@ -201,6 +223,5 @@ func main() {
 	} else {
 		fmt.Print("prod_id not exist.\n")
 	}*/
-	fmt.Print(ParesOrderInfo("warehouse-orders-v01.csv"))
-	//fmt.Print(ParesOrderInfo("test.csv"))
+	fmt.Print(ReadOrder())
 }
