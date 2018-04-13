@@ -1,6 +1,7 @@
 package warehouse
 
 import (
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"log"
@@ -8,11 +9,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"bufio"
 )
 
 const (
-	gridPath     = "warehouse-grid.csv"
+	gridPath    = "warehouse-grid.csv"
 	shelfLength = 1.0
 	shelfWidth  = 1.0
 	pathWidthX  = 1.0
@@ -92,20 +92,20 @@ func ParseProductInfo(path string) map[int]Product {
 }
 
 // BuildPathInfo return a nested map that records the distances between Points
-func BuildPathInfo(path string) map[Point]map[Point]float64{
+func BuildPathInfo(path string) map[Point]map[Point]float64 {
 	var m map[Point]map[Point]float64
 	m = make(map[Point]map[Point]float64)
-	for i:=0; i<=38; i++ {
-		for j:=0; j<=22; j++ {
+	for i := 0; i <= 38; i++ {
+		for j := 0; j <= 22; j++ {
 			if i*j%2 == 0 {
-				src := Point{i,j}
+				src := Point{i, j}
 				//srcstr := fmt.Sprintf("(%v %v)", i, j)
 				var m2 map[Point]float64
 				m2 = make(map[Point]float64)
-				for p:=0; p<=38; p++ {
-					for q:=0; q<=22; q++ {
+				for p := 0; p <= 38; p++ {
+					for q := 0; q <= 22; q++ {
 						if p*q%2 == 0 {
-							dest := Point{p,q}
+							dest := Point{p, q}
 							//deststr := fmt.Sprintf("(%v %v)", p, q)
 							_, m2[dest] = FindPath(src, dest)
 						}
@@ -124,7 +124,7 @@ func ParesOrderInfo(path string) [][]int {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var orders[][] int
+	var orders [][]int
 	for _, s := range records {
 		var err error
 		s = strings.Split(strings.TrimSpace(s[0]), "\t")
@@ -151,16 +151,15 @@ func ReadOrder() [][]int {
 	}
 	s := strings.Split(strInput, " ")
 	order := make([]int, len(s))
-		for i := range s {
-			s[i] = strings.TrimSpace(s[i])
-			order[i], err = strconv.Atoi(s[i])
-			if err != nil {
-				log.Fatal(err)
-			}
+	for i := range s {
+		s[i] = strings.TrimSpace(s[i])
+		order[i], err = strconv.Atoi(s[i])
+		if err != nil {
+			log.Fatal(err)
 		}
+	}
 	return [][]int{order}
 }
-
 
 // ReadInput returns 3 int from stdin
 func ReadInput() (int, int, int) {

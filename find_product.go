@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"warehouse-optimizer/warehouse"
 	"log"
+	"warehouse-optimizer/warehouse"
 )
 
 const (
-	gridPath     = "warehouse-grid.csv"
+	gridPath = "warehouse-grid.csv"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 
 	prod, ok := m[id]
 	if ok {
-		src := warehouse.Point{x, y}
+		src := warehouse.Point{X: x, Y: y}
 		path, length := warehouse.FindPath(src, warehouse.FindDest(src, prod))
 		fmt.Printf("%v\nlength: %v\n", path, length)
 	} else {
