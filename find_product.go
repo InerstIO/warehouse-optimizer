@@ -91,7 +91,6 @@ func ParseProductInfo(path string) map[int]Product {
 }
 
 // ParesOrderInfo returns a list of orders
-// Waiting for a fix of the input file
 func ParesOrderInfo(path string) [][]int {
 	records, err := ReadCSV(path)
 	if err != nil {
@@ -100,6 +99,7 @@ func ParesOrderInfo(path string) [][]int {
 	var orders[][] int
 	for _, s := range records {
 		var err error
+		s = strings.Split(strings.TrimSpace(s[0]), "\t")
 		order := make([]int, len(s))
 		for i := range s {
 			s[i] = strings.TrimSpace(s[i])
@@ -201,6 +201,6 @@ func main() {
 	} else {
 		fmt.Print("prod_id not exist.\n")
 	}*/
-	//fmt.Print(ParesOrderInfo("warehouse-orders-v01.csv"))
-	fmt.Print(ParesOrderInfo("test.csv"))
+	fmt.Print(ParesOrderInfo("warehouse-orders-v01.csv"))
+	//fmt.Print(ParesOrderInfo("test.csv"))
 }
