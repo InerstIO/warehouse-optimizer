@@ -91,6 +91,33 @@ func ParseProductInfo(path string) map[int]Product {
 	return m
 }
 
+// BuildPathInfo return a nested map that records the distances between Points
+func BuildPathInfo(path string) map[Point]map[Point]float64{
+	var m map[Point]map[Point]float64
+	m = make(map[Point]map[Point]float64)
+	for i:=0; i<=38; i++ {
+		for j:=0; j<=22; j++ {
+			if i*j%2 == 0 {
+				src := Point{i,j}
+				//srcstr := fmt.Sprintf("(%v %v)", i, j)
+				var m2 map[Point]float64
+				m2 = make(map[Point]float64)
+				for p:=0; p<=38; p++ {
+					for q:=0; q<=22; q++ {
+						if p*q%2 == 0 {
+							dest := Point{p,q}
+							//deststr := fmt.Sprintf("(%v %v)", p, q)
+							_, m2[dest] = FindPath(src, dest)
+						}
+					}
+				}
+				m[src] = m2
+			}
+		}
+	}
+	return m
+}
+
 // ParesOrderInfo returns a list of orders
 func ParesOrderInfo(path string) [][]int {
 	records, err := ReadCSV(path)
