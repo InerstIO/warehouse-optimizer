@@ -25,7 +25,7 @@ const (
 // Product defines the information of a product
 type Product struct {
 	id         int
-	pos        Point
+	Pos        Point
 	l, r, u, d bool
 	//num int
 }
@@ -95,7 +95,7 @@ func ParseProductInfo(path string) map[int]Product {
 			}
 		}
 		temp[1], temp[2] = coordinateConverter(temp[1], temp[2])
-		prod := Product{id: temp[0], pos: Point{temp[1], temp[2]}}
+		prod := Product{id: temp[0], Pos: Point{temp[1], temp[2]}}
 		m[temp[0]] = *posAssigner(&prod)
 	}
 	return m
@@ -257,10 +257,10 @@ func RouteLength(o Order, start, end Point, m map[int]Product, pathInfo map[Poin
 
 // FindDest returns the destination given init position & product to fetch
 func FindDest(src Point, prod Product) Point {
-	if src.X < prod.pos.X {
-		return Point{prod.pos.X - 1, prod.pos.Y}
+	if src.X < prod.Pos.X {
+		return Point{prod.Pos.X - 1, prod.Pos.Y}
 	}
-	return Point{prod.pos.X + 1, prod.pos.Y}
+	return Point{prod.Pos.X + 1, prod.Pos.Y}
 }
 
 // FindPath returns the array of turning points on the path
