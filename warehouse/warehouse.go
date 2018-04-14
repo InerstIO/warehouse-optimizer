@@ -153,11 +153,12 @@ func ParesOrderInfo(path string) [][]int {
 
 // ReadOrder returns a list of "an" order to be compatible with ParesOrderInfo
 // product_id should be separated by space from stdin
-func ReadOrder() [][]int {
+func ReadOrder(m map[int]Product) [][]int {
 	r := bufio.NewReader(os.Stdin)
 	strInput, err := r.ReadString('\n')
 	strInput, err = r.ReadString('\n') // an ugly fix to avoid empty line from stdin
-	if len(strings.TrimSpace(strInput)) == 0 {
+	strInput = strings.TrimSpace(strInput)
+	if len(strInput) == 0 {
 		log.Fatal("Empty input.")
 	}
 	if err != nil {
@@ -170,6 +171,10 @@ func ReadOrder() [][]int {
 		order[i], err = strconv.Atoi(s[i])
 		if err != nil {
 			log.Fatal(err)
+		}
+		_, ok := m[order[i]]
+		if !ok {
+			log.Fatalf("Item id %v not exist.", order[i])
 		}
 	}
 	return [][]int{order}
