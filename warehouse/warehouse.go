@@ -156,6 +156,7 @@ func ParesOrderInfo(path string) [][]int {
 func ReadOrder() [][]int {
 	r := bufio.NewReader(os.Stdin)
 	strInput, err := r.ReadString('\n')
+	strInput, err = r.ReadString('\n') // an ugly fix to avoid empty line from stdin
 	if len(strings.TrimSpace(strInput)) == 0 {
 		log.Fatal("Empty input.")
 	}
