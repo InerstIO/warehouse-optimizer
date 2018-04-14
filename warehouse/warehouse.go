@@ -223,7 +223,7 @@ func BruteForceOrderOptimizer(o Order, start, end Point, m map[int]Product, path
 		order = i.(Order)
 		length = RouteLength(order, start, end, m, pathInfo)
 		j++
-		if min > length {
+		if min > math.Min(min, length) {
 			min = length
 			minIndex = j
 		}
@@ -237,6 +237,30 @@ func BruteForceOrderOptimizer(o Order, start, end Point, m map[int]Product, path
 		mathutil.PermutationNext(i)
 	}
 	return i.(Order)
+}
+
+// NearestNeighbourOrderOptimizer returns the Order by finding nearest neighbours
+func NearestNeighbourOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) Order {
+	var newOrder Order
+	src := start
+	for len(o) > 0 {
+		minIndex := 0
+		dest := FindDest(src, m[o[0]])
+		length := pathInfo[src][dest]
+		min := length
+		for i, prod := range o[1:] {
+			dest := FindDest(src, m[prod])
+			length := pathInfo[src][dest]
+			if min > math.Min(min, length) {
+				min = length
+				minIndex = i + 1
+			}
+		}
+		newOrder = append(newOrder, o[minIndex])
+		o = append(o[:minIndex], o[minIndex+1:]...)
+		src = dest
+	}
+	return newOrder
 }
 
 // RouteLength returns the length of the route for a specific Order
