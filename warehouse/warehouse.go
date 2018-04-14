@@ -117,7 +117,7 @@ func BuildPathInfo(path string) map[Point]map[Point]float64 {
 						if p*q%2 == 0 {
 							dest := Point{p, q}
 							//deststr := fmt.Sprintf("(%v %v)", p, q)
-							_, m2[dest] = FindPath(src, dest)
+							m2[dest] = PathLength(FindPath(src, dest))
 						}
 					}
 				}
@@ -264,8 +264,8 @@ func FindDest(src Point, prod Product) Point {
 }
 
 // FindPath returns the array of turning points on the path
-// inclduing source and destination & length of the path
-func FindPath(src Point, dest Point) (Path, float64) {
+// inclduing source and destination
+func FindPath(src Point, dest Point) Path {
 	var path Path
 	switch {
 	case src.X == dest.X && src.Y == dest.Y:
@@ -278,7 +278,7 @@ func FindPath(src Point, dest Point) (Path, float64) {
 	default:
 		path = []Point{src, {dest.X, src.Y}, dest}
 	}
-	return path, PathLength(path)
+	return path
 }
 
 // PathLength returns the length of the path
