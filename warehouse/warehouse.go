@@ -7,8 +7,11 @@ import (
 	"log"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/cznic/mathutil"
 )
 
 const (
@@ -34,6 +37,13 @@ type Point struct {
 
 // Path is a slice of Points
 type Path []Point
+
+// Order is a list of int that represents the products
+type Order []int
+
+func (o Order) Len() int           { return len(o) }
+func (o Order) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
+func (o Order) Less(i, j int) bool { return o[i] < o[j] }
 
 //ReadCSV returns a 2D array of string from the csv file
 func ReadCSV(path string) ([][]string, error) {
@@ -141,7 +151,7 @@ func ParesOrderInfo(path string) [][]int {
 	return orders
 }
 
-// ReadOredr returns a list of "an" order to be compatible with ParesOrderInfo
+// ReadOrder returns a list of "an" order to be compatible with ParesOrderInfo
 // product_id should be separated by space from stdin
 func ReadOrder() [][]int {
 	r := bufio.NewReader(os.Stdin)
@@ -177,6 +187,63 @@ func ReadInput() (int, int) {
 		}
 	}
 	return input[0], input[1]
+}
+
+func orderDeepCopy(o Order) Order {
+	var newOrder Order
+	for _, v := range o {
+		newOrder = append(newOrder, v)
+	}
+	return newOrder
+}
+
+// BruteForceOrderOptimizer returns the Order with min total distance
+func BruteForceOrderOptimizer(o Order, start, end Point, m map[int]Product) Order {
+	var orders []Order
+	var i sort.Interface = o
+	mathutil.PermutationFirst(i)
+	order := i.(Order)
+	orderCopy := orderDeepCopy(order)
+	orders = append(orders, orderCopy)
+	for {
+		ok := mathutil.PermutationNext(i)
+		if !ok {
+			break
+		}
+		order = i.(Order)
+		orderCopy = orderDeepCopy(order)
+		orders = append(orders, orderCopy)
+	}
+
+	minIndex := 0
+	length := RouteLength(order, start, end, m)
+	min := length
+	for j, order := range orders[1:] {
+		length = RouteLength(order, start, end, m)
+		if min > math.Min(min, length) {
+			min = math.Min(min, length)
+			minIndex = j + 1
+		}
+	}
+	return orders[minIndex]
+}
+
+// RouteLength returns the length of the route for a specific Order
+func RouteLength(o Order, start, end Point, m map[int]Product) float64 {
+	var length float64
+	pos := FindDest(start, m[o[0]])
+	_, pathLength := FindPath(start, pos)
+	prevPos := pos
+	length += pathLength
+	for i := range o[1 : len(o)-1] {
+		pos = FindDest(prevPos, m[o[i]])
+		_, pathLength = FindPath(prevPos, pos)
+		prevPos = pos
+		length += pathLength
+	}
+	_, pathLength = FindPath(prevPos, end)
+	length += pathLength
+	return length
 }
 
 // FindDest returns the destination given init position & product to fetch
