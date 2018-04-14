@@ -201,7 +201,7 @@ func orderDeepCopy(o Order) Order {
 }
 
 // BruteForceOrderOptimizer returns the Order with min total distance
-func BruteForceOrderOptimizer(o Order, start, end Point, m map[int]Product) Order {
+func BruteForceOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) Order {
 	var orders []Order
 	var i sort.Interface = o
 	mathutil.PermutationFirst(i)
@@ -219,10 +219,10 @@ func BruteForceOrderOptimizer(o Order, start, end Point, m map[int]Product) Orde
 	}
 
 	minIndex := 0
-	length := RouteLength(order, start, end, m)
+	length := RouteLength(order, start, end, m, pathInfo)
 	min := length
 	for j, order := range orders[1:] {
-		length = RouteLength(order, start, end, m)
+		length = RouteLength(order, start, end, m, pathInfo)
 		if min > math.Min(min, length) {
 			min = math.Min(min, length)
 			minIndex = j + 1
@@ -232,19 +232,19 @@ func BruteForceOrderOptimizer(o Order, start, end Point, m map[int]Product) Orde
 }
 
 // RouteLength returns the length of the route for a specific Order
-func RouteLength(o Order, start, end Point, m map[int]Product) float64 {
+func RouteLength(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) float64 {
 	var length float64
 	pos := FindDest(start, m[o[0]])
-	_, pathLength := FindPath(start, pos)
+	pathLength := pathInfo[start][pos]
 	prevPos := pos
 	length += pathLength
 	for i := range o[1 : len(o)-1] {
 		pos = FindDest(prevPos, m[o[i]])
-		_, pathLength = FindPath(prevPos, pos)
+		pathLength = pathInfo[prevPos][pos]
 		prevPos = pos
 		length += pathLength
 	}
-	_, pathLength = FindPath(prevPos, end)
+	pathLength = pathInfo[prevPos][end]
 	length += pathLength
 	return length
 }
