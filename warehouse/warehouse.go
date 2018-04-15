@@ -282,7 +282,7 @@ func RouteLength(o Order, start, end Point, m map[int]Product, pathInfo map[Poin
 	pos := FindDest(start, m[o[0]])
 	prevPos = pos
 	length += pathInfo[start][pos]
-	for i := range o[1 : len(o)] {
+	for i := range o[1:len(o)] {
 		prevPos = pos
 		pos = FindDest(prevPos, m[o[i+1]])
 		length += pathInfo[prevPos][pos]
@@ -328,6 +328,23 @@ func PathLength(path Path) float64 {
 		dy += math.Abs(float64(path[i+1].Y-path[i].Y)) * (shelfWidth + pathWidthY) / 2
 	}
 	return dx + dy
+}
+
+// Route2String returns the string representation of the route
+func Route2String(order Order, start, end Point, m map[int]Product) string {
+	dest := FindDest(start, m[order[0]])
+	s := fmt.Sprintf("%v->", FindPath(start, dest))
+	s += fmt.Sprintf("[pick up %v from %v]->", order[0], m[order[0]].Pos)
+	var src Point
+	for _, prod := range order[1:] {
+		src = dest
+		dest = FindDest(start, m[prod])
+		s += fmt.Sprintf("%v->", FindPath(src, dest))
+		s += fmt.Sprintf("[pick up %v from %v]->", prod, m[prod].Pos)
+	}
+	src = dest
+	s += fmt.Sprint(FindPath(src, end))
+	return s
 }
 
 func (p Point) String() string {
