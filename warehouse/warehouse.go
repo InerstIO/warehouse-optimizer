@@ -129,16 +129,16 @@ func BuildPathInfo(path string) map[Point]map[Point]float64 {
 }
 
 // ParesOrderInfo returns a list of orders
-func ParesOrderInfo(path string) [][]int {
+func ParesOrderInfo(path string) []Order {
 	records, err := ReadCSV(path)
 	if err != nil {
 		log.Fatal(err)
 	}
-	var orders [][]int
+	var orders []Order
 	for _, s := range records {
 		var err error
 		s = strings.Split(strings.TrimSpace(s[0]), "\t")
-		order := make([]int, len(s))
+		order := make(Order, len(s))
 		for i := range s {
 			s[i] = strings.TrimSpace(s[i])
 			order[i], err = strconv.Atoi(s[i])
