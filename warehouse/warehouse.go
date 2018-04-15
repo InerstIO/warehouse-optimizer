@@ -349,3 +349,12 @@ func (o Order) String() string {
 	}
 	return s
 }
+
+// Order2csv returns a list of strings in csv compatible format
+func Order2csv(o Order) []string {
+	var ls []string
+	for _, prod := range o {
+		ls = append(ls, strconv.Itoa(prod))
+	}
+	return ls
+}
