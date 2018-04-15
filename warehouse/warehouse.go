@@ -198,6 +198,16 @@ func ReadInput() (int, int) {
 	return input[0], input[1]
 }
 
+// ReadString returns the string without space from stdin
+func ReadString() string {
+	var strInput string
+	_, err := fmt.Scan(&strInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return strings.TrimSpace(strInput)
+}
+
 func orderDeepCopy(o Order) Order {
 	var newOrder Order
 	for _, v := range o {
