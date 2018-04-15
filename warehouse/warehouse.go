@@ -258,17 +258,19 @@ func NearestNeighbourOrderOptimizer(o Order, start, end Point, m map[int]Product
 		dest := FindDest(src, m[o[0]])
 		length := pathInfo[src][dest]
 		min := length
+		minDest := dest
 		for i, prod := range o[1:] {
-			dest := FindDest(src, m[prod])
-			length := pathInfo[src][dest]
+			dest = FindDest(src, m[prod])
+			length = pathInfo[src][dest]
 			if min > math.Min(min, length) {
 				min = length
 				minIndex = i + 1
+				minDest = dest
 			}
 		}
 		newOrder = append(newOrder, o[minIndex])
 		o = append(o[:minIndex], o[minIndex+1:]...)
-		src = dest
+		src = minDest
 	}
 	return newOrder
 }
