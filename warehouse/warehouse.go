@@ -341,3 +341,11 @@ func (path Path) String() string {
 	}
 	return s
 }
+
+func (o Order) String() string {
+	s := fmt.Sprint(o[0])
+	for _, prod := range o[1:] {
+		s += fmt.Sprintf(", %v", prod)
+	}
+	return s
+}
