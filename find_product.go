@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/csv"
+	//"encoding/csv"
 	"flag"
-	"fmt"
+	//"fmt"
 	"log"
 	"os"
 	"runtime/pprof"
 	"runtime"
-	"strconv"
+	//"strconv"
 	//"strings"
 	"warehouse-optimizer/warehouse"
 )
@@ -60,7 +60,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}*/
-		t = 1
+		t = 2
 		if t == 1 || t == 2 {
 			break
 		}
@@ -86,10 +86,18 @@ func main() {
 		fmt.Println(s)
 		fmt.Printf("Total distance traveled: %v\n", warehouse.RouteLength(optimalOrder, start, end, m, pathInfo))*/
 	} else if t == 2 {
-		fmt.Println("Please list file of orders to be processed:")
-		ordersPath := warehouse.ReadString()
+		//fmt.Println("Please list file of orders to be processed:")
+		//ordersPath := warehouse.ReadString()
+		ordersPath := "warehouse-orders-v01.csv"
 		orders := warehouse.ParesOrderInfo(ordersPath)
-		fmt.Println("Please list output file:")
+		orderList := []int{9,11,68}
+		for j:=0; j<100000; j++{
+			for _, i := range orderList {
+				warehouse.NearestNeighbourOrderOptimizer(orders[i], start, end, m, pathInfo)
+			}
+		}
+		
+		/*fmt.Println("Please list output file:")
 		outputPath := warehouse.ReadString()
 		fmt.Println("Computing...")
 		outputFile, err := os.Create(outputPath)
@@ -157,7 +165,7 @@ func main() {
 			}
 			orderCtr++
 		}
-		fmt.Printf("%v orders processed.", orderCtr)
+		fmt.Printf("%v orders processed.", orderCtr)*/
 	}
 
 	if *memprofile != "" {
