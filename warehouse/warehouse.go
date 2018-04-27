@@ -290,7 +290,7 @@ func RouteLength(o Order, start, end Point, m map[int]Product, pathInfo map[Poin
 		pos = FindDest(prevPos, m[o[i+1]])
 		length += pathInfo[prevPos][pos]
 	}
-	length += pathInfo[prevPos][end]
+	length += pathInfo[pos][end]
 	return length
 }
 
