@@ -280,6 +280,95 @@ func NearestNeighbourOrderOptimizer(o Order, start, end Point, m map[int]Product
 	return newOrder
 }
 
+// NNIOrderOptimizer Nearest Neighbor With Iterations Order Optimizer.
+// If no iteration varible given then iteration == len(order)
+func NNIOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64, iteration ...int) Order {
+	pseudoProd := Product{pseudo: true, pseudoIn: end, pseudoOut: start}
+	iter := len(o)
+	if len(iteration) > 0 {
+		iter = iteration[0]
+	}
+	var newOrder Order
+	minTotal := math.Inf(1)
+	prods := []Product{pseudoProd}
+	for _, p := range o {
+		prods = append(prods, m[p])
+	}
+	for i := 0; i < iter; i++ {
+		var src Point
+		srcPoint := prods[i]
+		ps := make([]Product, len(prods))
+		copy(ps, prods)
+		ps = append(ps[:i], ps[i+1:]...)
+		if srcPoint.pseudo {
+			src = srcPoint.pseudoOut
+			nnOrder := nearestNeighborRing(ps, src, srcPoint, pathInfo)
+			length := RouteLength(nnOrder, start, end, m, pathInfo)
+			if length < minTotal {
+				minTotal = length
+				newOrder = nnOrder
+			}
+		} else {
+			src = Point{srcPoint.Pos.X - 1, srcPoint.Pos.Y}
+			nnOrder := nearestNeighborRing(ps, src, srcPoint, pathInfo)
+			length := RouteLength(nnOrder, start, end, m, pathInfo)
+			if length < minTotal {
+				minTotal = length
+				newOrder = nnOrder
+			}
+			src = Point{srcPoint.Pos.X + 1, srcPoint.Pos.Y}
+			nnOrder = nearestNeighborRing(ps, src, srcPoint, pathInfo)
+			length = RouteLength(nnOrder, start, end, m, pathInfo)
+			if length < minTotal {
+				minTotal = length
+				newOrder = nnOrder
+			}
+		}
+	}
+	return newOrder
+}
+
+func nearestNeighborRing(prods []Product, src Point, srcProd Product, pathInfo map[Point]map[Point]float64) Order {
+	ps := make([]Product, len(prods))
+	copy(ps, prods)
+	prodsOrder := []Product{srcProd}
+	for len(ps) > 0 {
+		minIndex := 0
+		var length float64
+		min := math.Inf(1)
+		var newSrc Point
+		for i, prod := range ps {
+			dest := FindDest(src, prod)
+			length = pathInfo[src][dest]
+			if min > math.Min(min, length) {
+				min = length
+				minIndex = i
+				if prod.pseudo {
+					newSrc = prod.pseudoOut // for the new src
+				} else {
+					newSrc = dest
+				}
+			}
+		}
+		prodsOrder = append(prodsOrder, ps[minIndex])
+		ps = append(ps[:minIndex], ps[minIndex+1:]...)
+		src = newSrc
+	}
+	var startIndex int
+	for i, prod := range prodsOrder {
+		if prod.pseudo {
+			startIndex = i
+			break
+		}
+	}
+	prodsOrder = append(prodsOrder[startIndex+1:], prodsOrder[:startIndex]...)
+	var order Order
+	for _, prod := range prodsOrder {
+		order = append(order, prod.id)
+	}
+	return order
+}
+
 // RouteLength returns the length of the route for a specific Order
 func RouteLength(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) float64 {
 	var length float64
