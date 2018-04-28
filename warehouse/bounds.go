@@ -94,3 +94,12 @@ func lowerBoundSE(matrix [][]float64) float64 {
 	}
 	return maxsum
 }
+
+// LowerBound returns the lower bound of the length of the route
+func LowerBound(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) float64 {
+	matrix := buildEdgeMatrix(o, start, end, m, pathInfo)
+	if start == end {
+		return lowerBoundSE(matrix)
+	}
+	return lowerBoundGeneric(matrix)
+}
