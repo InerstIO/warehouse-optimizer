@@ -63,3 +63,34 @@ func lowerBoundGeneric(matrix [][]float64) float64 {
 	}
 	return sum
 }
+
+// lowerBoundSE returns the lower bound of the length of the route.
+// start == end. Running iterations.
+func lowerBoundSE(matrix [][]float64) float64 {
+	maxsum := math.Inf(-1)
+	var sum float64
+	if len(matrix) > 2 {
+		for i := range matrix {
+			newMatrix := make([][]float64, len(matrix))
+			copy(newMatrix, matrix)
+			newMatrix = append(newMatrix[:i], newMatrix[i+1:]...)
+			sum = lowerBoundGeneric(newMatrix)
+			min1, min2 := math.Inf(1), math.Inf(1)
+			for _, num := range matrix[i] {
+				if num < min1 {
+					min1 = num
+					min2 = min1
+				}
+			}
+			sum += min1 + min2
+			if sum > maxsum {
+				maxsum = sum
+			}
+		}
+	} else if len(matrix) == 2 {
+		maxsum = matrix[0][1] * 2
+	} else {
+		maxsum = 0
+	}
+	return maxsum
+}
