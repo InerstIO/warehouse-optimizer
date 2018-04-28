@@ -36,3 +36,30 @@ func buildEdgeMatrix(o Order, start, end Point, m map[int]Product, pathInfo map[
 	}
 	return matrix
 }
+
+// lowerBoundGeneric returns the lower bound of the length of the route.
+// start != end
+func lowerBoundGeneric(matrix [][]float64) float64 {
+	var minIndex int
+	var sum float64
+	var scanJ []int
+	for j := range matrix {
+		scanJ = append(scanJ, j)
+	}
+	for len(scanJ) > 0 {
+		min := math.Inf(1)
+		for k, j := range scanJ {
+			for i := j + 1; i < len(matrix[j]); i++ {
+				if matrix[j][i] < min {
+					min = matrix[j][i]
+					minIndex = k
+				}
+			}
+		}
+		if !math.IsInf(min, 1) {
+			sum += min
+		}
+		scanJ = append(scanJ[:minIndex], scanJ[minIndex+1:]...)
+	}
+	return sum
+}
