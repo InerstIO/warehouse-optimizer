@@ -289,7 +289,7 @@ func NNIOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 		prods = append(prods, m[p])
 	}
 	iter := len(prods)
-	if len(iteration) > 0 && iteration[0] < iter {
+	if len(iteration) > 0 && iteration[0] < iter && 0 < iteration[0] {
 		iter = iteration[0]
 	}
 	for i := 0; i < iter; i++ {
