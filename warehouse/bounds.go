@@ -42,6 +42,44 @@ func buildEdgeMatrix(o Order, start, end Point, m map[int]Product, pathInfo map[
 func lowerBoundGeneric(matrix [][]float64) float64 {
 	var minIndex int
 	var sum float64
+	var s map[int]bool
+	s = make(map[int]bool)
+	vKeys := make([]float64, len(matrix[0]))
+	for i := range vKeys[1:] {
+		vKeys[i+1] = math.Inf(1)
+	}
+	for len(s) < len(matrix) {
+		min := math.Inf(1)
+		for i, vKey := range vKeys {
+			_, ok := s[i]
+			if ok {
+				continue
+			}
+			if vKey < min {
+				min = vKey
+				minIndex = i
+			}
+		}
+		s[minIndex] = true
+		sum += min
+		for j, w := range matrix[minIndex] {
+			if j == minIndex {
+				continue
+			}
+			if w < vKeys[j] {
+				vKeys[j] = w
+			}
+		}
+	}
+	return sum
+}
+
+// lowerBoundGenericMod returns the lower bound of the length of the route.
+// start != end
+// I think it's not the correct algorithm
+func lowerBoundGenericMod(matrix [][]float64) float64 {
+	var minIndex int
+	var sum float64
 	var scanJ []int
 	for j := range matrix {
 		scanJ = append(scanJ, j)
@@ -74,6 +112,9 @@ func lowerBoundSE(matrix [][]float64) float64 {
 			newMatrix := make([][]float64, len(matrix))
 			copy(newMatrix, matrix)
 			newMatrix = append(newMatrix[:i], newMatrix[i+1:]...)
+			for j := range newMatrix {
+				newMatrix[j] = append(newMatrix[j][:i], newMatrix[j][i+1:]...)
+			}
 			sum = lowerBoundGeneric(newMatrix)
 			min1, min2 := math.Inf(1), math.Inf(1)
 			for _, num := range matrix[i] {
