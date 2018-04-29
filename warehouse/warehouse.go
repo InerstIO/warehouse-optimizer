@@ -309,19 +309,24 @@ func NNIOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 				newOrder = nnOrder
 			}
 		} else {
-			src = Point{srcPoint.Pos.X - 1, srcPoint.Pos.Y}
-			nnOrder := nearestNeighborRing(ps, src, srcPoint, pathInfo)
-			length := RouteLength(nnOrder, start, end, m, pathInfo)
-			if length < minTotal {
-				minTotal = length
-				newOrder = nnOrder
+			// Maybe need to modify here (using FindDest to get src instead of hardcoding)
+			if srcPoint.l {
+				src = Point{srcPoint.Pos.X - 1, srcPoint.Pos.Y}
+				nnOrder := nearestNeighborRing(ps, src, srcPoint, pathInfo)
+				length := RouteLength(nnOrder, start, end, m, pathInfo)
+				if length < minTotal {
+					minTotal = length
+					newOrder = nnOrder
+				}
 			}
-			src = Point{srcPoint.Pos.X + 1, srcPoint.Pos.Y}
-			nnOrder = nearestNeighborRing(ps, src, srcPoint, pathInfo)
-			length = RouteLength(nnOrder, start, end, m, pathInfo)
-			if length < minTotal {
-				minTotal = length
-				newOrder = nnOrder
+			if srcPoint.r {
+				src = Point{srcPoint.Pos.X + 1, srcPoint.Pos.Y}
+				nnOrder := nearestNeighborRing(ps, src, srcPoint, pathInfo)
+				length := RouteLength(nnOrder, start, end, m, pathInfo)
+				if length < minTotal {
+					minTotal = length
+					newOrder = nnOrder
+				}
 			}
 		}
 	}
