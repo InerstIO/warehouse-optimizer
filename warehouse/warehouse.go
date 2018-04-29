@@ -284,15 +284,15 @@ func NearestNeighbourOrderOptimizer(o Order, start, end Point, m map[int]Product
 // If no iteration varible given then iteration == len(order)
 func NNIOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64, iteration ...int) Order {
 	pseudoProd := Product{pseudo: true, pseudoIn: end, pseudoOut: start}
-	iter := len(o)
-	if len(iteration) > 0 && iteration[0] < iter {
-		iter = iteration[0]
-	}
 	var newOrder Order
 	minTotal := math.Inf(1)
 	prods := []Product{pseudoProd}
 	for _, p := range o {
 		prods = append(prods, m[p])
+	}
+	iter := len(prods)
+	if len(iteration) > 0 && iteration[0] < iter {
+		iter = iteration[0]
 	}
 	for i := 0; i < iter; i++ {
 		var src Point
