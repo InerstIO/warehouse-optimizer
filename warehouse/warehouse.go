@@ -255,14 +255,16 @@ func BruteForceOrderOptimizer(o Order, start, end Point, m map[int]Product, path
 // NearestNeighbourOrderOptimizer returns the Order by finding nearest neighbours
 func NearestNeighbourOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) Order {
 	var newOrder Order
+	ord := make(Order, len(o))
+	copy(ord, o)
 	src := start
-	for len(o) > 0 {
+	for len(ord) > 0 {
 		minIndex := 0
-		dest := FindDest(src, m[o[0]])
+		dest := FindDest(src, m[ord[0]])
 		length := pathInfo[src][dest]
 		min := length
 		minDest := dest
-		for i, prod := range o[1:] {
+		for i, prod := range ord[1:] {
 			dest = FindDest(src, m[prod])
 			length = pathInfo[src][dest]
 			if min > math.Min(min, length) {
@@ -271,8 +273,8 @@ func NearestNeighbourOrderOptimizer(o Order, start, end Point, m map[int]Product
 				minDest = dest
 			}
 		}
-		newOrder = append(newOrder, o[minIndex])
-		o = append(o[:minIndex], o[minIndex+1:]...)
+		newOrder = append(newOrder, ord[minIndex])
+		ord = append(ord[:minIndex], ord[minIndex+1:]...)
 		src = minDest
 	}
 	return newOrder
