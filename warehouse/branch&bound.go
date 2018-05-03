@@ -99,3 +99,13 @@ func explore(start, dest int, m [][]float64, infSlice []float64) [][]float64 {
 	}
 	return newMatrix
 }
+
+func checkNext(start, dest int, parent *vertex, infSlice []float64) vertex {
+	matrix, cost := reduceMatrix(explore(start, dest, parent.matrix, infSlice))
+	return vertex{
+		parent: parent,
+		matrix: matrix,
+		cost:   parent.cost + cost + parent.matrix[parent.path[len(parent.path)-1]][dest],
+		path:   append(parent.path, dest),
+	}
+}
