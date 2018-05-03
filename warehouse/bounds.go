@@ -109,12 +109,7 @@ func lowerBoundSE(matrix [][]float64) float64 {
 	var sum float64
 	if len(matrix) > 2 {
 		for i := range matrix {
-			newMatrix := make([][]float64, len(matrix))
-			copy(newMatrix, matrix)
-			for j := range newMatrix {
-				newMatrix[j] = make([]float64, len(matrix[j]))
-				copy(newMatrix[j], matrix[j])
-			}
+			newMatrix := deepCopy2DMatrix(matrix)
 			newMatrix = append(newMatrix[:i], newMatrix[i+1:]...)
 			for j := range newMatrix {
 				newMatrix[j] = append(newMatrix[j][:i], newMatrix[j][i+1:]...)
