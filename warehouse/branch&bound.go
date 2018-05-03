@@ -4,6 +4,38 @@ import (
 	"math"
 )
 
+type vertex struct {
+	parent *vertex
+	matrix [][]float64
+	cost   float64
+	path   []int
+}
+
+type priorityQueue []*vertex
+
+func (pq priorityQueue) Len() int { return len(pq) }
+
+func (pq priorityQueue) Less(i, j int) bool {
+	return pq[i].cost < pq[j].cost
+}
+
+func (pq priorityQueue) Swap(i, j int) {
+	pq[i], pq[j] = pq[j], pq[i]
+}
+
+func (pq *priorityQueue) Push(x interface{}) {
+	v := x.(*vertex)
+	*pq = append(*pq, v)
+}
+
+func (pq *priorityQueue) Pop() interface{} {
+	old := *pq
+	n := len(old)
+	v := old[n-1]
+	*pq = old[0 : n-1]
+	return v
+}
+
 func deepCopy2DMatrix(m [][]float64) [][]float64 {
 	newMatrix := make([][]float64, len(m))
 	copy(newMatrix, m)
