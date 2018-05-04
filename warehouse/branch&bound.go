@@ -102,8 +102,8 @@ func explore(src vertex, dest int, m [][]float64, infSlice []float64) [][]float6
 	return newMatrix
 }
 
-func checkNext(src vertex, dest int, parent *vertex, infSlice []float64) vertex {
-	matrix, cost := reduceMatrix(explore(src, dest, parent.matrix, infSlice))
+func checkNext(dest int, parent *vertex, infSlice []float64) vertex {
+	matrix, cost := reduceMatrix(explore(*parent, dest, parent.matrix, infSlice))
 	return vertex{
 		parent: parent,
 		matrix: matrix,
