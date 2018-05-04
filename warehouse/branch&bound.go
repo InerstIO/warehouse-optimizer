@@ -60,7 +60,7 @@ func reduceMatrix(m [][]float64) ([][]float64, float64) {
 				}
 			}
 		}
-		if min == 0.0 {
+		if min == 0.0 || math.IsInf(min, 1) {
 			continue
 		}
 		cost += min
@@ -78,7 +78,7 @@ func reduceMatrix(m [][]float64) ([][]float64, float64) {
 				}
 			}
 		}
-		if min == 0.0 {
+		if min == 0.0 || math.IsInf(min, 1) {
 			continue
 		}
 		cost += min
