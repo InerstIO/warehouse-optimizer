@@ -89,19 +89,21 @@ func reduceMatrix(m [][]float64) ([][]float64, float64) {
 	return newMatrix, cost
 }
 
-// start should be the very first node in the route, instead of the src of the edge
-func explore(start, dest int, m [][]float64, infSlice []float64) [][]float64 {
+func explore(src vertex, dest int, m [][]float64, infSlice []float64) [][]float64 {
 	newMatrix := deepCopy2DMatrix(m)
-	newMatrix[start] = infSlice
-	newMatrix[dest][start] = math.Inf(1)
+	newMatrix[src.path[len(src.path)-1]] = infSlice
+	newMatrix[dest][src.path[len(src.path)-1]] = math.Inf(1)
 	for j := 0; j < len(newMatrix); j++ {
 		newMatrix[j][dest] = math.Inf(1)
+	}
+	for _, p := range src.path {
+		newMatrix[dest][p] = math.Inf(1)
 	}
 	return newMatrix
 }
 
-func checkNext(start, dest int, parent *vertex, infSlice []float64) vertex {
-	matrix, cost := reduceMatrix(explore(start, dest, parent.matrix, infSlice))
+func checkNext(src vertex, dest int, parent *vertex, infSlice []float64) vertex {
+	matrix, cost := reduceMatrix(explore(src, dest, parent.matrix, infSlice))
 	return vertex{
 		parent: parent,
 		matrix: matrix,
