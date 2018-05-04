@@ -1,6 +1,7 @@
 package warehouse
 
 import (
+	"container/heap"
 	"math"
 )
 
@@ -110,4 +111,50 @@ func checkNext(dest int, parent *vertex, infSlice []float64) vertex {
 		cost:   parent.cost + cost + parent.matrix[parent.path[len(parent.path)-1]][dest],
 		path:   append(parent.path, dest),
 	}
+}
+
+// BnBOrderOptimizer Branch and Bound Order Optimizer
+func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) Order {
+	matrix := buildEdgeMatrix(o, start, start, m, pathInfo) // end == start since we don't want end in the matrix
+	infSlice := make([]float64, len(matrix[0]))
+	for i := range infSlice {
+		infSlice[i] = math.Inf(1)
+	}
+	var cost float64
+	matrix, cost = reduceMatrix(matrix)
+	initial := vertex{
+		matrix: matrix,
+		cost:   cost,
+		path:   []int{0},
+	}
+	pq := priorityQueue{&initial}
+	heap.Init(&pq)
+	min := math.Inf(1)
+	var path []int
+	for pq.Len() > 0 {
+		p := heap.Pop(&pq).(*vertex)
+		var v vertex
+		remain := 0
+		if p.cost < min {
+			for i := range p.matrix {
+				if math.IsInf(p.matrix[i][0], 1) {
+					continue
+				}
+				remain++
+				v = checkNext(i, p, infSlice)
+				heap.Push(&pq, &v)
+			}
+			if remain == 1 && v.cost < min {
+				min = v.cost
+				path = v.path
+			}
+		} else {
+			break
+		}
+	}
+	var newOrder Order
+	for _, k := range path[1:] {
+		newOrder = append(newOrder, o[k-1])
+	}
+	return newOrder
 }
