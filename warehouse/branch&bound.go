@@ -113,9 +113,38 @@ func checkNext(dest int, parent *vertex, infSlice []float64) vertex {
 	}
 }
 
+func buildEdgeMatrixBnB(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) [][]float64 {
+	prods := []Product{Product{Pos: start, pseudo: true, pseudoIn: end}}
+	for _, p := range o {
+		prods = append(prods, m[p])
+	}
+	matrix := make([][]float64, len(prods))
+	for i := range matrix {
+		matrix[i] = make([]float64, len(prods))
+	}
+	var length float64
+	for j := range matrix {
+		for i := 0; i < len(prods); i++ {
+			if i != j {
+				src := prods[j].Pos
+				dest := FindDest(src, prods[i])
+				if !prods[j].pseudo {
+					src = FindDest(dest, prods[j]) // It will result in MST containing impossible edges
+					// Since always choosing the smaller one from the left/right of the shelf
+				}
+				length = pathInfo[src][dest]
+				matrix[j][i] = length
+			} else {
+				matrix[j][i] = math.Inf(1)
+			}
+		}
+	}
+	return matrix
+}
+
 // BnBOrderOptimizer Branch and Bound Order Optimizer
 func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) Order {
-	matrix := buildEdgeMatrix(o, start, start, m, pathInfo) // end == start since we don't want end in the matrix
+	matrix := buildEdgeMatrixBnB(o, start, end, m, pathInfo)
 	infSlice := make([]float64, len(matrix[0]))
 	for i := range infSlice {
 		infSlice[i] = math.Inf(1)
