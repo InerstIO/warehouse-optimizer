@@ -1,12 +1,16 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
+	//"encoding/csv"
+	"flag"
+	//"fmt"
 	"log"
 	"os"
-	"strconv"
-	"strings"
+	"runtime"
+	"runtime/pprof"
+	//"strconv"
+	//"strings"
 	"warehouse-optimizer/warehouse"
 )
 
@@ -14,24 +18,39 @@ const (
 	gridPath = "warehouse-grid.csv"
 )
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var memprofile = flag.String("memprofile", "", "write memory profile to `file`")
+
 func main() {
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
+
 	m := warehouse.ParseProductInfo(gridPath)
 	pathInfo := warehouse.BuildPathInfo(gridPath)
-	fmt.Println("Hello User, where is your worker? e.g.:\"2 4\"")
-	x, y := warehouse.ReadInput()
+	//fmt.Println("Hello User, where is your worker? e.g.:\"2 4\"")
+	//x, y := warehouse.ReadInput()
+	x, y := 0, 0
 	start := warehouse.Point{X: x, Y: y}
 	if x*y%2 == 1 {
 		log.Fatal("Cannot start on a shelf.")
 	}
-	fmt.Println("What is your worker's end location? e.g.:\"0 18\"")
-	x, y = warehouse.ReadInput()
+	//fmt.Println("What is your worker's end location? e.g.:\"0 18\"")
+	//x, y = warehouse.ReadInput()
+	x, y = 0, 0
 	end := warehouse.Point{X: x, Y: y}
 	if x*y%2 == 1 {
 		log.Fatal("Cannot end on a shelf.")
 	}
 	var t int
 	for {
-		fmt.Println("Type 1 to manual input, type 2 to file input.")
+		/*fmt.Println("Type 1 to manual input, type 2 to file input.")
 		var strInput string
 		_, err := fmt.Scan(&strInput)
 		if err != nil {
@@ -41,13 +60,23 @@ func main() {
 		t, err = strconv.Atoi(strInput)
 		if err != nil {
 			log.Fatal(err)
-		}
+		}*/
+		t = 2
 		if t == 1 || t == 2 {
 			break
 		}
 	}
 	if t == 1 {
-		fmt.Println("Hello User, what items would you like to pick? (separate by space)")
+		prods := []int{46071, 379019, 70172, 1321, 2620261}
+		for i := 0; i < 10000000; i++ {
+			for _, prod := range prods {
+				dest := warehouse.FindDest(start, m[prod])
+				warehouse.FindPath(start, dest)
+				warehouse.FindPath(dest, end)
+			}
+		}
+
+		/*fmt.Println("Hello User, what items would you like to pick? (separate by space)")
 		orders := warehouse.ReadOrder(m)
 		fmt.Println("Here is the optimal picking order:")
 		//optimalOrder := warehouse.BruteForceOrderOptimizer(orders[0], start, end, m, pathInfo)
@@ -56,12 +85,40 @@ func main() {
 		fmt.Println("Here is the optimal path:")
 		s := warehouse.Route2String(optimalOrder, start, end, m)
 		fmt.Println(s)
-		fmt.Printf("Total distance traveled: %v\n", warehouse.RouteLength(optimalOrder, start, end, m, pathInfo))
+		fmt.Printf("Total distance traveled: %v\n", warehouse.RouteLength(optimalOrder, start, end, m, pathInfo))*/
 	} else if t == 2 {
-		fmt.Println("Please list file of orders to be processed:")
-		ordersPath := warehouse.ReadString()
+		//fmt.Println("Please list file of orders to be processed:")
+		//ordersPath := warehouse.ReadString()
+		ordersPath := "warehouse-orders-v01.csv"
 		orders := warehouse.ParesOrderInfo(ordersPath)
-		fmt.Println("Please list output file:")
+		/*orderList := []int{9, 11, 68}
+		for j:=0; j<1000; j++{
+			for _, i := range orderList {
+				warehouse.NNIOrderOptimizer(orders[i], start, end, m, pathInfo)
+			}
+		}*/
+		/*nni := warehouse.NNIOrderOptimizer(orders[1], start, end, m, pathInfo)
+		fmt.Print(warehouse.LowerBound(nni, start, end, m, pathInfo))
+		fmt.Print(warehouse.RouteLength(nni, start, end, m, pathInfo))*/
+		for i, order := range orders {
+			nni := warehouse.NNIOrderOptimizer(order, start, end, m, pathInfo)
+			//nni2 := warehouse.NNIOrderOptimizer(order, start, end, m, pathInfo, len(order)/2)
+			//nni4 := warehouse.NNIOrderOptimizer(order, start, end, m, pathInfo, len(order)/4)
+			nn := warehouse.NearestNeighbourOrderOptimizer(order, start, end, m, pathInfo)
+			nnilen := warehouse.RouteLength(nni, start, end, m, pathInfo)
+			//nni2len := warehouse.RouteLength(nni2, start, end, m, pathInfo)
+			//nni4len := warehouse.RouteLength(nni4, start, end, m, pathInfo)
+			nnlen := warehouse.RouteLength(nn, start, end, m, pathInfo)
+			lb := warehouse.LowerBound(nni, start, end, m, pathInfo)
+			//ori := warehouse.RouteLength(order, start, end, m, pathInfo)
+			fmt.Printf("%v %v %v %v\n", i, lb, nnilen, nnlen)
+			//if lb < nnilen {
+				//fmt.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+			//}
+		}
+		//nni := warehouse.NNIOrderOptimizer(orders[67], start, end, m, pathInfo)
+		//fmt.Print(nni)
+		/*fmt.Println("Please list output file:")
 		outputPath := warehouse.ReadString()
 		fmt.Println("Computing...")
 		outputFile, err := os.Create(outputPath)
@@ -129,7 +186,19 @@ func main() {
 			}
 			orderCtr++
 		}
-		fmt.Printf("%v orders processed.", orderCtr)
+		fmt.Printf("%v orders processed.", orderCtr)*/
+	}
+
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		if err != nil {
+			log.Fatal("could not create memory profile: ", err)
+		}
+		runtime.GC() // get up-to-date statistics
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			log.Fatal("could not write memory profile: ", err)
+		}
+		f.Close()
 	}
 
 	/*prod, ok := m[id]
