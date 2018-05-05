@@ -1,7 +1,7 @@
 package warehouse
 
 import (
-	//"bufio"
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"log"
@@ -157,11 +157,9 @@ func ParesOrderInfo(path string) []Order {
 // ReadOrder returns a list of "an" order to be compatible with ParesOrderInfo
 // product_id should be separated by space from stdin
 func ReadOrder(m map[int]Product) [][]int {
-	/*r := bufio.NewReader(os.Stdin)
+	r := bufio.NewReader(os.Stdin)
 	strInput, err := r.ReadString('\n')
-	strInput, err = r.ReadString('\n') // an ugly fix to avoid empty line from stdin*/
-	strInput := "46071 379019 70172 1321 2620261"
-	var err error
+	strInput, err = r.ReadString('\n') // an ugly fix to avoid empty line from stdin
 	strInput = strings.TrimSpace(strInput)
 	if len(strInput) == 0 {
 		log.Fatal("Empty input.")
