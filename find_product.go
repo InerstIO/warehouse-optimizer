@@ -29,10 +29,35 @@ func main() {
 	if x*y%2 == 1 {
 		log.Fatal("Cannot end on a shelf.")
 	}
-	var t int
+	var op, t, iter int
+	fmt.Println("Type 0 for Nearest Neighbor Optimizer, type 1 for Branch & Bound Optimizer (slow!!)")
+	var strInput string
+	_, err := fmt.Scan(&strInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+	strInput = strings.TrimSpace(strInput)
+	op, err = strconv.Atoi(strInput)
+	optimizer := func(op int, o warehouse.Order, start, end warehouse.Point, m map[int]warehouse.Product,
+		pathInfo map[warehouse.Point]map[warehouse.Point]float64, iteration ...int) warehouse.Order {
+		if op == 0 {
+			return warehouse.NNIOrderOptimizer(o, start, end, m, pathInfo, iteration...)
+		} else {
+			return warehouse.BnBOrderOptimizer(o, start, end, m, pathInfo)
+		}
+	}
+	if op == 0 {
+		fmt.Println("What's the max number of iterations you want? (0 for max available)")
+		_, err := fmt.Scan(&strInput)
+		if err != nil {
+			log.Fatal(err)
+		}
+		strInput = strings.TrimSpace(strInput)
+		iter, err = strconv.Atoi(strInput)
+	}
+
 	for {
 		fmt.Println("Type 1 to manual input, type 2 to file input.")
-		var strInput string
 		_, err := fmt.Scan(&strInput)
 		if err != nil {
 			log.Fatal(err)
@@ -51,7 +76,7 @@ func main() {
 		orders := warehouse.ReadOrder(m)
 		fmt.Println("Here is the optimal picking order:")
 		//optimalOrder := warehouse.BruteForceOrderOptimizer(orders[0], start, end, m, pathInfo)
-		optimalOrder := warehouse.NearestNeighbourOrderOptimizer(orders[0], start, end, m, pathInfo)
+		optimalOrder := optimizer(op, orders[0], start, end, m, pathInfo, iter)
 		fmt.Println(optimalOrder)
 		fmt.Println("Here is the optimal path:")
 		s := warehouse.Route2String(optimalOrder, start, end, m)
@@ -102,7 +127,7 @@ func main() {
 			if err := writer.Write([]string{"##Optimized Parts Order##"}); err != nil {
 				log.Fatalln("error writing record to csv:", err)
 			}
-			optimalOrder := warehouse.NearestNeighbourOrderOptimizer(order, start, end, m, pathInfo)
+			optimalOrder := optimizer(op, order, start, end, m, pathInfo, iter)
 			if err := writer.Write(warehouse.Order2csv(optimalOrder)); err != nil {
 				log.Fatalln("error writing record to csv:", err)
 			}
