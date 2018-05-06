@@ -159,12 +159,13 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 	pq := priorityQueue{&initial}
 	heap.Init(&pq)
 	min := math.Inf(1)
-	var path []int
+	realMin := math.Inf(1)
+	var newOrder Order
 	for pq.Len() > 0 {
 		p := heap.Pop(&pq).(*vertex)
 		var v vertex
 		remain := 0
-		if p.cost < min {
+		if p.cost <= min {
 			for i := range p.matrix {
 				if math.IsInf(p.matrix[i][0], 1) {
 					continue
@@ -174,17 +175,21 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 				heap.Push(&pq, &cv)
 				v = cv
 			}
-			if remain == 1 && v.cost < min {
+			if remain == 1 && v.cost <= min {
 				min = v.cost
-				path = v.path
+				var tempOrder Order
+				for _, k := range v.path[1:] {
+					tempOrder = append(tempOrder, o[k-1])
+				}
+				tempOrderLen := RouteLength(tempOrder, start, end, m, pathInfo)
+				if tempOrderLen < realMin {
+					realMin = tempOrderLen
+					newOrder = tempOrder
+				}
 			}
 		} else {
 			break
 		}
-	}
-	var newOrder Order
-	for _, k := range path[1:] {
-		newOrder = append(newOrder, o[k-1])
 	}
 	return newOrder
 }
