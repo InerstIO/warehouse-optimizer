@@ -170,8 +170,9 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 					continue
 				}
 				remain++
-				v = checkNext(i, p, infSlice)
-				heap.Push(&pq, &v)
+				cv := checkNext(i, p, infSlice)
+				heap.Push(&pq, &cv)
+				v = cv
 			}
 			if remain == 1 && v.cost < min {
 				min = v.cost
