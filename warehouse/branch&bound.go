@@ -6,7 +6,6 @@ import (
 )
 
 type vertex struct {
-	parent *vertex
 	matrix [][]float64
 	cost   float64
 	path   []int
@@ -39,7 +38,6 @@ func (pq *priorityQueue) Pop() interface{} {
 
 func deepCopy2DMatrix(m [][]float64) [][]float64 {
 	newMatrix := make([][]float64, len(m))
-	copy(newMatrix, m)
 	for j := range newMatrix {
 		newMatrix[j] = make([]float64, len(m[j]))
 		copy(newMatrix[j], m[j])
@@ -105,11 +103,12 @@ func explore(src vertex, dest int, m [][]float64, infSlice []float64) [][]float6
 
 func checkNext(dest int, parent *vertex, infSlice []float64) vertex {
 	matrix, cost := reduceMatrix(explore(*parent, dest, parent.matrix, infSlice))
+	newPath := make([]int, len(parent.path))
+	copy(newPath, parent.path)
 	return vertex{
-		parent: parent,
 		matrix: matrix,
 		cost:   parent.cost + cost + parent.matrix[parent.path[len(parent.path)-1]][dest],
-		path:   append(parent.path, dest),
+		path:   append(newPath, dest),
 	}
 }
 
