@@ -16,6 +16,9 @@ type priorityQueue []*vertex
 func (pq priorityQueue) Len() int { return len(pq) }
 
 func (pq priorityQueue) Less(i, j int) bool {
+	if pq[i].cost == pq[j].cost {
+		return len(pq[i].path) > len(pq[j].path)
+	}
 	return pq[i].cost < pq[j].cost
 }
 
