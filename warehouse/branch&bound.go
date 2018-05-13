@@ -2,6 +2,7 @@ package warehouse
 
 import (
 	"container/heap"
+	"fmt"
 	"math"
 )
 
@@ -9,6 +10,9 @@ type vertex struct {
 	matrix [][]float64
 	cost   float64
 	path   []int
+	loc    int
+	index  int
+	parent *vertex
 }
 
 type priorityQueue []*vertex
@@ -104,7 +108,7 @@ func explore(src vertex, dest int, m [][]float64, infSlice []float64) [][]float6
 	return newMatrix
 }
 
-func checkNext(dest int, parent *vertex, infSlice []float64) vertex {
+func checkNext(dest int, parent *vertex, infSlice []float64, index int) vertex {
 	matrix, cost := reduceMatrix(explore(*parent, dest, parent.matrix, infSlice))
 	newPath := make([]int, len(parent.path))
 	copy(newPath, parent.path)
@@ -112,6 +116,9 @@ func checkNext(dest int, parent *vertex, infSlice []float64) vertex {
 		matrix: matrix,
 		cost:   parent.cost + cost + parent.matrix[parent.path[len(parent.path)-1]][dest],
 		path:   append(newPath, dest),
+		loc:    parent.loc*(len(matrix)-len(parent.path)+1)+parent.index,
+		index: index-1,
+		parent: parent,
 	}
 }
 
@@ -146,6 +153,17 @@ func buildEdgeMatrixBnB(o Order, start, end Point, m map[int]Product, pathInfo m
 
 // BnBOrderOptimizer Branch and Bound Order Optimizer
 func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) Order {
+	tree := make([][][]string, len(o)+1)
+	tree[0] = make([][]string, 1)
+	tree[0][0] = make([]string, 1)
+	tree[1] = make([][]string, 1)
+	tree[1][0] = make([]string, len(o))
+	for i := range tree[2:] {
+		tree[i+2] = make([][]string, len(tree[i+1])*(len(o)-i))
+		for j := range tree[i+2] {
+			tree[i+2][j] = make([]string, len(o)-i-1)
+		}
+	}
 	matrix := buildEdgeMatrixBnB(o, start, end, m, pathInfo)
 	infSlice := make([]float64, len(matrix[0]))
 	for i := range infSlice {
@@ -157,12 +175,16 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 		matrix: matrix,
 		cost:   cost,
 		path:   []int{0},
+		loc:    0,
+		index: 0,
 	}
+	tree[0][0][0] = fmt.Sprintf("%v_%v_%v", 0, cost, 0)
 	pq := priorityQueue{&initial}
 	heap.Init(&pq)
 	min := math.Inf(1)
 	realMin := math.Inf(1)
 	var newOrder Order
+	var ctr int
 	for pq.Len() > 0 {
 		p := heap.Pop(&pq).(*vertex)
 		var v vertex
@@ -173,7 +195,13 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 					continue
 				}
 				remain++
-				cv := checkNext(i, p, infSlice)
+				cv := checkNext(i, p, infSlice, remain)
+				ctr++
+				/*fmt.Println(tree)
+				fmt.Println(len(cv.path)-1)
+				fmt.Println(cv.loc)
+				fmt.Println(remain-1)*/
+				tree[len(cv.path)-1][cv.loc] = append(tree[len(cv.path)-1][cv.loc], fmt.Sprintf("%v_%v_%v", cv.path[len(cv.path)-1], cv.cost, ctr))
 				heap.Push(&pq, &cv)
 				v = cv
 			}
@@ -192,6 +220,10 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 		} else {
 			break
 		}
+	}
+	//fmt.Println(ctr)
+	for i := range tree {
+		fmt.Println(tree[i])
 	}
 	return newOrder
 }
