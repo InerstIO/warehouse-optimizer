@@ -77,7 +77,7 @@ func posAssigner(prod *Product) *Product {
 // ParseProductInfo returns a map that includes product info
 // TO-DO: ALSO FIND MAX/MIN INFO
 // MAYBE NOT NECESSARY?
-func ParseProductInfo(path string) map[int]Product {
+func ParseProductInfo(path string, dim map[int][]float64) map[int]Product {
 	records, err := ReadCSV(path)
 	if err != nil {
 		log.Fatal(err)
@@ -101,6 +101,11 @@ func ParseProductInfo(path string) map[int]Product {
 		}
 		temp[1], temp[2] = coordinateConverter(temp[1], temp[2])
 		prod := Product{id: temp[0], Pos: Point{temp[1], temp[2]}, pseudo: false}
+		d, ok := dim[temp[0]]
+		if ok {
+			prod.wAvail = true
+			prod.w = d[3]
+		}
 		m[temp[0]] = *posAssigner(&prod)
 	}
 	return m
