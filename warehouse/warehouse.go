@@ -26,6 +26,8 @@ const (
 type Product struct {
 	id         int
 	Pos        Point
+	wAvail     bool
+	w          float64
 	l, r, u, d bool
 	pseudo     bool
 	pseudoIn   Point
@@ -154,13 +156,14 @@ func ParesOrderInfo(path string) []Order {
 	return orders
 }
 
-// ParesDimensionInfo returns a list of item info: Item_id length width height weight
-func ParesDimensionInfo(path string) [][]float64 {
+// ParesDimensionInfo returns a list of item info: 
+// map[Item_id]: [length width height weight]
+func ParesDimensionInfo(path string) map[int][]float64 {
 	records, err := ReadCSV(path)
 	if err != nil {
 		log.Fatal(err)
 	}
-	var items [][]float64
+	items := make(map[int][]float64)
 	for _, s := range records[1:] {
 		var err error
 		s = strings.Split(strings.TrimSpace(s[0]), "\t")
@@ -172,7 +175,7 @@ func ParesDimensionInfo(path string) [][]float64 {
 				log.Fatal(err)
 			}
 		}
-		items = append(items, item)
+		items[int(item[0])] = item[1:]
 	}
 	return items
 }
