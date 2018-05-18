@@ -12,10 +12,12 @@ import (
 
 const (
 	gridPath = "warehouse-grid.csv"
+	dimPath = "item-dimensions-tabbed.txt"
 )
 
 func main() {
 	m := warehouse.ParseProductInfo(gridPath)
+	dim := warehouse.ParesDimensionInfo(dimPath)
 	pathInfo := warehouse.BuildPathInfo(gridPath)
 	fmt.Println("Hello User, where is your worker? e.g.:\"2 4\"")
 	x, y := warehouse.ReadInput()

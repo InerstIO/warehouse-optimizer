@@ -154,6 +154,29 @@ func ParesOrderInfo(path string) []Order {
 	return orders
 }
 
+// ParesDimensionInfo returns a list of item info: Item_id length width height weight
+func ParesDimensionInfo(path string) [][]float64 {
+	records, err := ReadCSV(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var items [][]float64
+	for _, s := range records[1:] {
+		var err error
+		s = strings.Split(strings.TrimSpace(s[0]), "\t")
+		item := make([]float64, len(s))
+		for i := range s {
+			s[i] = strings.TrimSpace(s[i])
+			item[i], err = strconv.ParseFloat(s[i], 64)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		items = append(items, item)
+	}
+	return items
+}
+
 // ReadOrder returns a list of "an" order to be compatible with ParesOrderInfo
 // product_id should be separated by space from stdin
 func ReadOrder(m map[int]Product) [][]int {
