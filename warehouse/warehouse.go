@@ -421,6 +421,34 @@ func RouteLength(o Order, start, end Point, m map[int]Product, pathInfo map[Poin
 	return length
 }
 
+// RouteEffort returns the total effort of a specific Order
+func RouteEffort(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) (float64, bool) {
+	var effort float64
+	var weight float64
+	var prevPos Point
+	var missWeightData bool
+	pos := FindDest(start, m[o[0]])
+	prevPos = pos
+	effort += pathInfo[start][pos] * weight
+	for i := range o[1:len(o)] {
+		prevPos = pos
+		pos = FindDest(prevPos, m[o[i+1]])
+		if m[o[i]].wAvail {
+			weight += m[o[i]].w
+		} else {
+			missWeightData = true
+		}
+		effort += pathInfo[prevPos][pos] * weight
+	}
+	if m[o[len(o)-1]].wAvail {
+		weight += m[o[len(o)-1]].w
+	} else {
+		missWeightData = true
+	}
+	effort += pathInfo[pos][end] * weight
+	return effort, missWeightData
+}
+
 // FindDest returns the destination given init position & product to fetch
 func FindDest(src Point, prod Product) Point {
 	if prod.pseudo {
