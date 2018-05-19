@@ -26,6 +26,8 @@ const (
 type Product struct {
 	id         int
 	Pos        Point
+	wAvail     bool
+	w          float64
 	l, r, u, d bool
 	pseudo     bool
 	pseudoIn   Point
@@ -75,7 +77,7 @@ func posAssigner(prod *Product) *Product {
 // ParseProductInfo returns a map that includes product info
 // TO-DO: ALSO FIND MAX/MIN INFO
 // MAYBE NOT NECESSARY?
-func ParseProductInfo(path string) map[int]Product {
+func ParseProductInfo(path string, dim map[int][]float64) map[int]Product {
 	records, err := ReadCSV(path)
 	if err != nil {
 		log.Fatal(err)
@@ -99,6 +101,11 @@ func ParseProductInfo(path string) map[int]Product {
 		}
 		temp[1], temp[2] = coordinateConverter(temp[1], temp[2])
 		prod := Product{id: temp[0], Pos: Point{temp[1], temp[2]}, pseudo: false}
+		d, ok := dim[temp[0]]
+		if ok {
+			prod.wAvail = true
+			prod.w = d[3]
+		}
 		m[temp[0]] = *posAssigner(&prod)
 	}
 	return m
@@ -152,6 +159,30 @@ func ParesOrderInfo(path string) []Order {
 		orders = append(orders, order)
 	}
 	return orders
+}
+
+// ParesDimensionInfo returns a list of item info: 
+// map[Item_id]: [length width height weight]
+func ParesDimensionInfo(path string) map[int][]float64 {
+	records, err := ReadCSV(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	items := make(map[int][]float64)
+	for _, s := range records[1:] {
+		var err error
+		s = strings.Split(strings.TrimSpace(s[0]), "\t")
+		item := make([]float64, len(s))
+		for i := range s {
+			s[i] = strings.TrimSpace(s[i])
+			item[i], err = strconv.ParseFloat(s[i], 64)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		items[int(item[0])] = item[1:]
+	}
+	return items
 }
 
 // ReadOrder returns a list of "an" order to be compatible with ParesOrderInfo
@@ -388,6 +419,43 @@ func RouteLength(o Order, start, end Point, m map[int]Product, pathInfo map[Poin
 	}
 	length += pathInfo[pos][end]
 	return length
+}
+
+// RouteEffort returns the total effort of a specific Order
+func RouteEffort(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) (float64, bool) {
+	var effort float64
+	var weight float64
+	var prevPos Point
+	var missWeightData bool
+	pos := FindDest(start, m[o[0]])
+	prevPos = pos
+	effort += pathInfo[start][pos] * weight
+	for i := range o[1:len(o)] {
+		prevPos = pos
+		pos = FindDest(prevPos, m[o[i+1]])
+		if m[o[i]].wAvail {
+			weight += m[o[i]].w
+		} else {
+			missWeightData = true
+		}
+		effort += pathInfo[prevPos][pos] * weight
+	}
+	if m[o[len(o)-1]].wAvail {
+		weight += m[o[len(o)-1]].w
+	} else {
+		missWeightData = true
+	}
+	effort += pathInfo[pos][end] * weight
+	return effort, missWeightData
+}
+
+// OrderWeight returns the weight of an order
+func OrderWeight(o Order, m map[int]Product) float64 {
+	var weight float64
+	for _, i := range o {
+		weight += m[i].w
+	}
+	return weight
 }
 
 // FindDest returns the destination given init position & product to fetch
