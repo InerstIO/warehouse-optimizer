@@ -449,6 +449,15 @@ func RouteEffort(o Order, start, end Point, m map[int]Product, pathInfo map[Poin
 	return effort, missWeightData
 }
 
+// OrderWeight returns the weight of an order
+func OrderWeight(o Order, m map[int]Product) float64 {
+	var weight float64
+	for _, i := range o {
+		weight += m[i].w
+	}
+	return weight
+}
+
 // FindDest returns the destination given init position & product to fetch
 func FindDest(src Point, prod Product) Point {
 	if prod.pseudo {
