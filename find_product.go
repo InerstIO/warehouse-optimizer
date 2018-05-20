@@ -84,6 +84,11 @@ func main() {
 		s := warehouse.Route2String(optimalOrder, start, end, m)
 		fmt.Println(s)
 		fmt.Printf("Total distance traveled: %v\n", warehouse.RouteLength(optimalOrder, start, end, m, pathInfo))
+		if effort, missWeightData := warehouse.RouteEffort(optimalOrder, start, end, m, pathInfo); missWeightData {
+			fmt.Printf("There are some item(s) with no weight data, and the effort of this path is at least %v.\n", effort)
+		} else {
+			fmt.Printf("The effort is %v.\n", effort)
+		}
 	} else if t == 2 {
 		fmt.Println("Please list file of orders to be processed:")
 		ordersPath := warehouse.ReadString()
