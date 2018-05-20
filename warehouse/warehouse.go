@@ -508,7 +508,7 @@ func Route2String(order Order, start, end Point, m map[int]Product) string {
 	var src Point
 	for _, prod := range order[1:] {
 		src = dest
-		dest = FindDest(start, m[prod])
+		dest = FindDest(src, m[prod])
 		s += fmt.Sprintf("%v->", FindPath(src, dest))
 		s += fmt.Sprintf("[pick up %v from %v]->", prod, m[prod].Pos)
 	}
