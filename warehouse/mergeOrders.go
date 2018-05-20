@@ -50,19 +50,21 @@ func MergeOrders(orders []Order, m map[int]Product, max float64) [][]int {
 	ordersWeight := []float64{0.0}
 	By(ByWeightReverse).Sort(orders, m)
 	var fit bool
-	for i, o := range orders {
+	for _, o := range orders {
 		fit = false
 		for j := range reOrders {
 			ow := OrderWeight(o, m)
 			if ordersWeight[j]+ow <= max || len(reOrders[j]) == 0 {
-				reOrders[j] = append(reOrders[j], i)
+				reOrders[j] = append(reOrders[j], o...)
 				ordersWeight[j] += ow
 				fit = true
 				break
 			}
 		}
 		if !fit {
-			reOrders = append(reOrders, []int{i})
+			var newOrder []int
+			newOrder = append(newOrder, o...)
+			reOrders = append(reOrders, newOrder)
 			ordersWeight = append(ordersWeight, OrderWeight(o, m))
 		}
 	}
