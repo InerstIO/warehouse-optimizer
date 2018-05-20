@@ -39,6 +39,32 @@ func (s *orderSorter) Less(i, j int) bool {
 	return s.by(&s.orders[i], &s.orders[j], s.m)
 }
 
+// ByWeightReverse is a closure that order the Orders by reverse weight
 func ByWeightReverse(o1, o2 *Order, m map[int]Product) bool {
 	return OrderWeight(*o1, m) > OrderWeight(*o2, m)
+}
+
+// MergeOrders returns the reconbined order IDs that has total weight not larger than max
+func MergeOrders(orders []Order, m map[int]Product, max float64) [][]int {
+	reOrders := make([][]int, 1)
+	ordersWeight := []float64{0.0}
+	By(ByWeightReverse).Sort(orders, m)
+	var fit bool
+	for i, o := range orders {
+		fit = false
+		for j := range reOrders {
+			ow := OrderWeight(o, m)
+			if ordersWeight[j]+ow <= max || len(reOrders[j]) == 0 {
+				reOrders[j] = append(reOrders[j], i)
+				ordersWeight[j] += ow
+				fit = true
+				break
+			}
+		}
+		if !fit {
+			reOrders = append(reOrders, []int{i})
+			ordersWeight = append(ordersWeight, OrderWeight(o, m))
+		}
+	}
+	return reOrders
 }
