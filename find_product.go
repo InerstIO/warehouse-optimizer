@@ -156,6 +156,15 @@ func main() {
 			if err := writer.Write([]string{warehouse.Route2String(optimalOrder, start, end, m)}); err != nil {
 				log.Fatalln("error writing record to csv:", err)
 			}
+			if effort, missWeightData := warehouse.RouteEffort(optimalOrder, start, end, m, pathInfo); missWeightData {
+				if err := writer.Write([]string{fmt.Sprintf("There are some item(s) with no weight data, and the effort of this path is at least %v.", effort)}); err != nil {
+					log.Fatalln("error writing record to csv:", err)
+				}
+			} else {
+				if err := writer.Write([]string{fmt.Sprintf("The effort is %v.", effort)}); err != nil {
+					log.Fatalln("error writing record to csv:", err)
+				}
+			}
 			if err := writer.Write([]string{"------------------------------------------------"}); err != nil {
 				log.Fatalln("error writing record to csv:", err)
 			}
