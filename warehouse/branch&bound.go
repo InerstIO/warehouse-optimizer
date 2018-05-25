@@ -174,7 +174,7 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 				}
 				remain++
 				cv := checkNext(i, p, infSlice)
-				if cv.cost <= min{
+				if cv.cost <= min {
 					heap.Push(&pq, &cv)
 				}
 				v = cv
@@ -196,4 +196,36 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 		}
 	}
 	return newOrder
+}
+
+func (slice Order) pos(value int) int {
+	for p, v := range slice {
+		if v == value {
+			return p
+		}
+	}
+	return -1
+}
+
+func reconstructCost(o Order, ori Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) float64 {
+	indices := make([]int, len(o))
+	for i, item := range o {
+		indices[i] = ori.pos(item)
+	}
+	matrix := buildEdgeMatrixBnB(ori, start, end, m, pathInfo)
+	infSlice := make([]float64, len(matrix[0]))
+	for i := range infSlice {
+		infSlice[i] = math.Inf(1)
+	}
+	var cost float64
+	matrix, cost = reduceMatrix(matrix)
+	p := vertex{
+		matrix: matrix,
+		cost:   cost,
+		path:   []int{0},
+	}
+	for _, i := range indices {
+		p = checkNext(i+1, &p, infSlice)
+	}
+	return p.cost
 }
