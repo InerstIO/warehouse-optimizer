@@ -3,6 +3,7 @@ package warehouse
 import (
 	"bufio"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math"
@@ -515,6 +516,26 @@ func Route2String(order Order, start, end Point, m map[int]Product) string {
 	src = dest
 	s += fmt.Sprint(FindPath(src, end))
 	return s
+}
+
+// Route2JSON returns the JSON encoding
+func Route2JSON(order Order, start, end Point, m map[int]Product) string {
+	var path Path
+	dest := FindDest(start, m[order[0]])
+	path = append(path, FindPath(start, dest)...)
+	var src Point
+	for _, prod := range order[1:] {
+		src = dest
+		dest = FindDest(src, m[prod])
+		path = append(path, FindPath(src, dest)...)
+	}
+	src = dest
+	path = append(path, FindPath(src, end)...)
+	b, err := json.Marshal(path)
+	if err != nil {
+		log.Fatalln("error converting to JSON:", err)
+	}
+	return string(b)
 }
 
 func (p Point) String() string {
