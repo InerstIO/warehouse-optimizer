@@ -518,24 +518,28 @@ func Route2String(order Order, start, end Point, m map[int]Product) string {
 	return s
 }
 
-// Route2JSON returns the JSON encoding
-func Route2JSON(order Order, start, end Point, m map[int]Product) string {
-	var path Path
-	dest := FindDest(start, m[order[0]])
-	path = append(path, FindPath(start, dest)...)
-	var src Point
-	for _, prod := range order[1:] {
+// Routes2JSON returns the JSON encoding
+func Routes2JSON(orders []Order, start, end Point, m map[int]Product) []byte {
+	var paths []Path
+	for _, order := range orders{
+		var path Path
+		dest := FindDest(start, m[order[0]])
+		path = append(path, FindPath(start, dest)...)
+		var src Point
+		for _, prod := range order[1:] {
+			src = dest
+			dest = FindDest(src, m[prod])
+			path = append(path, FindPath(src, dest)...)
+		}
 		src = dest
-		dest = FindDest(src, m[prod])
-		path = append(path, FindPath(src, dest)...)
+		path = append(path, FindPath(src, end)...)
+		paths = append(paths, path)
 	}
-	src = dest
-	path = append(path, FindPath(src, end)...)
-	b, err := json.Marshal(path)
+	b, err := json.Marshal(paths)
 	if err != nil {
 		log.Fatalln("error converting to JSON:", err)
 	}
-	return string(b)
+	return b
 }
 
 func (p Point) String() string {
