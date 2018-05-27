@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -11,8 +11,9 @@ import (
 )
 
 const (
-	gridPath = "warehouse-grid.csv"
-	dimPath = "item-dimensions-tabbed.txt"
+	gridPath  = "warehouse-grid.csv"
+	dimPath   = "item-dimensions-tabbed.txt"
+	timeLimit = 10.0
 )
 
 func main() {
@@ -45,7 +46,7 @@ func main() {
 		if op == 0 {
 			return warehouse.NNIOrderOptimizer(o, start, end, m, pathInfo, iteration...)
 		} else {
-			return warehouse.BnBOrderOptimizer(o, start, end, m, pathInfo)
+			return warehouse.BnBOrderOptimizer(o, start, end, m, pathInfo, timeLimit)
 		}
 	}
 	if op == 0 {
@@ -102,75 +103,20 @@ func main() {
 		}
 		defer outputFile.Close()
 
-		writer := csv.NewWriter(outputFile)
-		defer writer.Flush()
-
-		orderCtr := 0
+		var ods []warehouse.Order
 		for i, order := range orders {
-			if err := writer.Write([]string{"##Order Number##"}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{strconv.Itoa(i + 1)}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{"##Worker Start Location##"}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{fmt.Sprint(start)}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{"## Worker End Location##"}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{fmt.Sprint(end)}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{"##Original Parts Order##"}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write(warehouse.Order2csv(order)); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{"##Optimized Parts Order##"}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			optimalOrder := optimizer(op, order, start, end, m, pathInfo, iter)
-			if err := writer.Write(warehouse.Order2csv(optimalOrder)); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{"##Original Parts Total Distance##"}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{strconv.FormatFloat(warehouse.RouteLength(order, start, end, m, pathInfo), 'G', -1, 64)}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{"##Optimized Parts Total Distance##"}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{strconv.FormatFloat(warehouse.RouteLength(optimalOrder, start, end, m, pathInfo), 'G', -1, 64)}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{"##Path of optimized order##"}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if err := writer.Write([]string{warehouse.Route2String(optimalOrder, start, end, m)}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			if effort, missWeightData := warehouse.RouteEffort(optimalOrder, start, end, m, pathInfo); missWeightData {
-				if err := writer.Write([]string{fmt.Sprintf("There are some item(s) with no weight data, and the effort of this path is at least %v.", effort)}); err != nil {
-					log.Fatalln("error writing record to csv:", err)
-				}
+			var result warehouse.Order
+			if op == 0 {
+				result = warehouse.NNIOrderOptimizer(order, start, end, m, pathInfo)
 			} else {
-				if err := writer.Write([]string{fmt.Sprintf("The effort is %v.", effort)}); err != nil {
-					log.Fatalln("error writing record to csv:", err)
-				}
+				result = warehouse.BnBOrderOptimizer(order, start, end, m, pathInfo, timeLimit)
 			}
-			if err := writer.Write([]string{"------------------------------------------------"}); err != nil {
-				log.Fatalln("error writing record to csv:", err)
-			}
-			orderCtr++
+			ods = append(ods, result)
+			fmt.Println(i)
 		}
-		fmt.Printf("%v orders processed.", orderCtr)
+		if err := ioutil.WriteFile(outputPath, warehouse.Routes2JSON(ods, start, end, m), 0777); err != nil {
+			log.Fatalln("error writing results to json:", err)
+		}
 	}
 
 	/*prod, ok := m[id]
