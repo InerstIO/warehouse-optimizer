@@ -160,9 +160,9 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 	}
 	pq := priorityQueue{&initial}
 	heap.Init(&pq)
-	min := math.Inf(1)
-	realMin := math.Inf(1)
-	var newOrder Order
+	newOrder := NNIOrderOptimizer(o, start, end, m, pathInfo)
+	min := reconstructCost(newOrder, o, start, end, m, pathInfo)
+	realMin := RouteLength(newOrder, start, end, m, pathInfo)
 	for pq.Len() > 0 {
 		p := heap.Pop(&pq).(*vertex)
 		var v vertex
