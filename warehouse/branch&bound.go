@@ -3,6 +3,7 @@ package warehouse
 import (
 	"container/heap"
 	"math"
+	"time"
 )
 
 type vertex struct {
@@ -145,7 +146,8 @@ func buildEdgeMatrixBnB(o Order, start, end Point, m map[int]Product, pathInfo m
 }
 
 // BnBOrderOptimizer Branch and Bound Order Optimizer
-func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) Order {
+func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64, timeLimit float64) Order {
+	t := time.Now()
 	matrix := buildEdgeMatrixBnB(o, start, end, m, pathInfo)
 	infSlice := make([]float64, len(matrix[0]))
 	for i := range infSlice {
@@ -164,6 +166,9 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 	min := reconstructCost(newOrder, o, start, end, m, pathInfo)
 	realMin := RouteLength(newOrder, start, end, m, pathInfo)
 	for pq.Len() > 0 {
+		if time.Since(t).Seconds() > timeLimit {
+			break
+		}
 		p := heap.Pop(&pq).(*vertex)
 		var v vertex
 		remain := 0
