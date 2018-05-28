@@ -160,7 +160,7 @@ func ParesOrderInfo(path string) []Order {
 		for i := range s {
 			s[i] = strings.TrimSpace(s[i])
 			order[i].prodID, err = strconv.Atoi(s[i])
-			order[i].orderID = j
+			order[i].orderID = j + 1
 			if err != nil {
 				log.Fatal(err)
 			}
