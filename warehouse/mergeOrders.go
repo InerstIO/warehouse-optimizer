@@ -45,8 +45,8 @@ func ByWeightReverse(o1, o2 *Order, m map[int]Product) bool {
 }
 
 // MergeOrders returns the reconbined order IDs that has total weight not larger than max
-func MergeOrders(orders []Order, m map[int]Product, max float64) [][]int {
-	reOrders := make([][]int, 1)
+func MergeOrders(orders []Order, m map[int]Product, max float64) []Order {
+	reOrders := make([]Order, 1)
 	ordersWeight := []float64{0.0}
 	By(ByWeightReverse).Sort(orders, m)
 	var fit bool
@@ -62,7 +62,7 @@ func MergeOrders(orders []Order, m map[int]Product, max float64) [][]int {
 			}
 		}
 		if !fit {
-			var newOrder []int
+			var newOrder Order
 			newOrder = append(newOrder, o...)
 			reOrders = append(reOrders, newOrder)
 			ordersWeight = append(ordersWeight, OrderWeight(o, m))

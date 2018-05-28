@@ -119,7 +119,9 @@ func checkNext(dest int, parent *vertex, infSlice []float64) vertex {
 func buildEdgeMatrixBnB(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) [][]float64 {
 	prods := []Product{Product{Pos: start, pseudo: true, pseudoIn: end}}
 	for _, p := range o {
-		prods = append(prods, m[p])
+		prod := m[p.prodID]
+		prod.orderID = p.orderID
+		prods = append(prods, prod)
 	}
 	matrix := make([][]float64, len(prods))
 	for i := range matrix {
@@ -203,7 +205,7 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 	return newOrder
 }
 
-func (slice Order) pos(value int) int {
+func (slice Order) pos(value Item) int {
 	for p, v := range slice {
 		if v == value {
 			return p

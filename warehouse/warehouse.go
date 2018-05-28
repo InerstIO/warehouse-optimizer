@@ -33,7 +33,14 @@ type Product struct {
 	pseudo     bool
 	pseudoIn   Point
 	pseudoOut  Point
+	orderID	int
 	//num int
+}
+
+// Item defines prodID and orderID
+type Item struct {
+	prodID	int
+	orderID	int
 }
 
 // Point defines the location of a point
@@ -45,11 +52,11 @@ type Point struct {
 type Path []Point
 
 // Order is a list of int that represents the products
-type Order []int
+type Order []Item
 
 func (o Order) Len() int           { return len(o) }
 func (o Order) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
-func (o Order) Less(i, j int) bool { return o[i] < o[j] }
+func (o Order) Less(i, j int) bool { return o[i].prodID < o[j].prodID }
 
 //ReadCSV returns a 2D array of string from the csv file
 func ReadCSV(path string) ([][]string, error) {
@@ -146,13 +153,14 @@ func ParesOrderInfo(path string) []Order {
 		log.Fatal(err)
 	}
 	var orders []Order
-	for _, s := range records {
+	for j, s := range records {
 		var err error
 		s = strings.Split(strings.TrimSpace(s[0]), "\t")
 		order := make(Order, len(s))
 		for i := range s {
 			s[i] = strings.TrimSpace(s[i])
-			order[i], err = strconv.Atoi(s[i])
+			order[i].prodID, err = strconv.Atoi(s[i])
+			order[i].orderID = j
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -188,7 +196,7 @@ func ParesDimensionInfo(path string) map[int][]float64 {
 
 // ReadOrder returns a list of "an" order to be compatible with ParesOrderInfo
 // product_id should be separated by space from stdin
-func ReadOrder(m map[int]Product) [][]int {
+func ReadOrder(m map[int]Product) []Order {
 	r := bufio.NewReader(os.Stdin)
 	strInput, err := r.ReadString('\n')
 	strInput, err = r.ReadString('\n') // an ugly fix to avoid empty line from stdin
@@ -200,19 +208,21 @@ func ReadOrder(m map[int]Product) [][]int {
 		log.Fatal(err)
 	}
 	s := strings.Split(strInput, " ")
-	order := make([]int, len(s))
+	order := make(Order, len(s))
 	for i := range s {
 		s[i] = strings.TrimSpace(s[i])
-		order[i], err = strconv.Atoi(s[i])
+		var pid int
+		pid, err = strconv.Atoi(s[i])
+		order[i].prodID = pid
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, ok := m[order[i]]
+		_, ok := m[order[i].prodID]
 		if !ok {
 			log.Fatalf("Item id %v not exist.", order[i])
 		}
 	}
-	return [][]int{order}
+	return []Order{order}
 }
 
 // ReadInput returns 2 int from stdin
@@ -292,12 +302,12 @@ func NearestNeighbourOrderOptimizer(o Order, start, end Point, m map[int]Product
 	src := start
 	for len(ord) > 0 {
 		minIndex := 0
-		dest := FindDest(src, m[ord[0]])
+		dest := FindDest(src, m[ord[0].prodID])
 		length := pathInfo[src][dest]
 		min := length
 		minDest := dest
 		for i, prod := range ord[1:] {
-			dest = FindDest(src, m[prod])
+			dest = FindDest(src, m[prod.prodID])
 			length = pathInfo[src][dest]
 			if min > math.Min(min, length) {
 				min = length
@@ -320,7 +330,9 @@ func NNIOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 	minTotal := math.Inf(1)
 	prods := []Product{pseudoProd}
 	for _, p := range o {
-		prods = append(prods, m[p])
+		prod := m[p.prodID]
+		prod.orderID = p.orderID
+		prods = append(prods, prod)
 	}
 	iter := len(prods)
 	if len(iteration) > 0 && iteration[0] < iter && 0 < iteration[0] {
@@ -401,7 +413,7 @@ func nearestNeighborRing(prods []Product, src Point, srcProd Product, pathInfo m
 	prodsOrder = append(prodsOrder[startIndex+1:], prodsOrder[:startIndex]...)
 	var order Order
 	for _, prod := range prodsOrder {
-		order = append(order, prod.id)
+		order = append(order, Item{prod.id, prod.orderID})
 	}
 	return order
 }
@@ -410,12 +422,12 @@ func nearestNeighborRing(prods []Product, src Point, srcProd Product, pathInfo m
 func RouteLength(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) float64 {
 	var length float64
 	var prevPos Point
-	pos := FindDest(start, m[o[0]])
+	pos := FindDest(start, m[o[0].prodID])
 	prevPos = pos
 	length += pathInfo[start][pos]
 	for i := range o[1:len(o)] {
 		prevPos = pos
-		pos = FindDest(prevPos, m[o[i+1]])
+		pos = FindDest(prevPos, m[o[i+1].prodID])
 		length += pathInfo[prevPos][pos]
 	}
 	length += pathInfo[pos][end]
@@ -428,21 +440,21 @@ func RouteEffort(o Order, start, end Point, m map[int]Product, pathInfo map[Poin
 	var weight float64
 	var prevPos Point
 	var missWeightData bool
-	pos := FindDest(start, m[o[0]])
+	pos := FindDest(start, m[o[0].prodID])
 	prevPos = pos
 	effort += pathInfo[start][pos] * weight
 	for i := range o[1:len(o)] {
 		prevPos = pos
-		pos = FindDest(prevPos, m[o[i+1]])
-		if m[o[i]].wAvail {
-			weight += m[o[i]].w
+		pos = FindDest(prevPos, m[o[i+1].prodID])
+		if m[o[i].prodID].wAvail {
+			weight += m[o[i].prodID].w
 		} else {
 			missWeightData = true
 		}
 		effort += pathInfo[prevPos][pos] * weight
 	}
-	if m[o[len(o)-1]].wAvail {
-		weight += m[o[len(o)-1]].w
+	if m[o[len(o)-1].prodID].wAvail {
+		weight += m[o[len(o)-1].prodID].w
 	} else {
 		missWeightData = true
 	}
@@ -454,7 +466,7 @@ func RouteEffort(o Order, start, end Point, m map[int]Product, pathInfo map[Poin
 func OrderWeight(o Order, m map[int]Product) float64 {
 	var weight float64
 	for _, i := range o {
-		weight += m[i].w
+		weight += m[i.prodID].w
 	}
 	return weight
 }
@@ -503,15 +515,15 @@ func PathLength(path Path) float64 {
 
 // Route2String returns the string representation of the route
 func Route2String(order Order, start, end Point, m map[int]Product) string {
-	dest := FindDest(start, m[order[0]])
+	dest := FindDest(start, m[order[0].prodID])
 	s := fmt.Sprintf("%v->", FindPath(start, dest))
-	s += fmt.Sprintf("[pick up %v from %v]->", order[0], m[order[0]].Pos)
+	s += fmt.Sprintf("[pick up %v from %v]->", order[0], m[order[0].prodID].Pos)
 	var src Point
 	for _, prod := range order[1:] {
 		src = dest
-		dest = FindDest(src, m[prod])
+		dest = FindDest(src, m[prod.prodID])
 		s += fmt.Sprintf("%v->", FindPath(src, dest))
-		s += fmt.Sprintf("[pick up %v from %v]->", prod, m[prod].Pos)
+		s += fmt.Sprintf("[pick up %v from %v]->", prod, m[prod.prodID].Pos)
 	}
 	src = dest
 	s += fmt.Sprint(FindPath(src, end))
@@ -523,12 +535,12 @@ func Routes2JSON(orders []Order, start, end Point, m map[int]Product) []byte {
 	var paths []Path
 	for _, order := range orders{
 		var path Path
-		dest := FindDest(start, m[order[0]])
+		dest := FindDest(start, m[order[0].prodID])
 		path = append(path, FindPath(start, dest)...)
 		var src Point
 		for _, prod := range order[1:] {
 			src = dest
-			dest = FindDest(src, m[prod])
+			dest = FindDest(src, m[prod.prodID])
 			path = append(path, FindPath(src, dest)...)
 		}
 		src = dest
@@ -569,7 +581,7 @@ func (o Order) String() string {
 func Order2csv(o Order) []string {
 	var ls []string
 	for _, prod := range o {
-		ls = append(ls, strconv.Itoa(prod))
+		ls = append(ls, strconv.Itoa(prod.prodID))
 	}
 	return ls
 }
