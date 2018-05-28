@@ -95,7 +95,6 @@ func reduceMatrix(m [][]float64) ([][]float64, float64) {
 func explore(src vertex, dest int, m [][]float64, infSlice []float64) [][]float64 {
 	newMatrix := deepCopy2DMatrix(m)
 	newMatrix[src.path[len(src.path)-1]] = infSlice
-	newMatrix[dest][src.path[len(src.path)-1]] = math.Inf(1)
 	for j := 0; j < len(newMatrix); j++ {
 		newMatrix[j][dest] = math.Inf(1)
 	}
@@ -105,8 +104,42 @@ func explore(src vertex, dest int, m [][]float64, infSlice []float64) [][]float6
 	return newMatrix
 }
 
+func exploreLR(src vertex, dest int, m [][]float64, infSlice []float64) [][]float64 {
+	newMatrix := deepCopy2DMatrix(m)
+	newMatrix[src.path[len(src.path)-1]] = infSlice
+	if src.path[len(src.path)-1] != 0 {
+		if src.path[len(src.path)-1]%2 == 1 {
+			newMatrix[src.path[len(src.path)-1]+1] = infSlice
+		} else {
+			newMatrix[src.path[len(src.path)-1]-1] = infSlice
+		}
+	}
+	mp := []int{-1, 1}
+	for j := 0; j < len(newMatrix); j++ {
+		newMatrix[j][dest] = math.Inf(1)
+		newMatrix[j][dest + mp[dest%2]] = math.Inf(1)
+	}
+	newMatrix[dest + mp[dest%2]] = infSlice
+	for _, p := range src.path {
+		newMatrix[dest][p] = math.Inf(1)
+		newMatrix[dest + mp[dest%2]][p] = math.Inf(1)
+	}
+	return newMatrix
+}
+
 func checkNext(dest int, parent *vertex, infSlice []float64) vertex {
 	matrix, cost := reduceMatrix(explore(*parent, dest, parent.matrix, infSlice))
+	newPath := make([]int, len(parent.path))
+	copy(newPath, parent.path)
+	return vertex{
+		matrix: matrix,
+		cost:   parent.cost + cost + parent.matrix[parent.path[len(parent.path)-1]][dest],
+		path:   append(newPath, dest),
+	}
+}
+
+func checkNextLR(dest int, parent *vertex, infSlice []float64) vertex {
+	matrix, cost := reduceMatrix(exploreLR(*parent, dest, parent.matrix, infSlice))
 	newPath := make([]int, len(parent.path))
 	copy(newPath, parent.path)
 	return vertex{
@@ -179,6 +212,64 @@ func buildEdgeMatrixBnBLR(o Order, start, end Point, m map[int]Product, pathInfo
 		}
 	}
 	return matrix
+}
+
+// BnBLROrderOptimizer Branch and Bound Order Optimizer
+func BnBLROrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64, timeLimit float64) Order {
+	t := time.Now()
+	matrix := buildEdgeMatrixBnBLR(o, start, end, m, pathInfo)
+	infSlice := make([]float64, len(matrix[0]))
+	for i := range infSlice {
+		infSlice[i] = math.Inf(1)
+	}
+	var cost float64
+	matrix, cost = reduceMatrix(matrix)
+	initial := vertex{
+		matrix: matrix,
+		cost:   cost,
+		path:   []int{0},
+	}
+	pq := priorityQueue{&initial}
+	heap.Init(&pq)
+	newOrder := NNIOrderOptimizer(o, start, end, m, pathInfo)
+	min := math.Inf(1)
+	realMin := RouteLength(newOrder, start, end, m, pathInfo)
+	for pq.Len() > 0 {
+		if time.Since(t).Seconds() > timeLimit {
+			break
+		}
+		p := heap.Pop(&pq).(*vertex)
+		var v vertex
+		remain := 0
+		if p.cost <= min {
+			for i := range p.matrix {
+				if math.IsInf(p.matrix[i][0], 1) {
+					continue
+				}
+				remain++
+				cv := checkNextLR(i, p, infSlice)
+				if cv.cost <= min {
+					heap.Push(&pq, &cv)
+				}
+				v = cv
+			}
+			if remain == 2 && v.cost <= min {
+				min = v.cost
+				var tempOrder Order
+				for _, k := range v.path[1:] {
+					tempOrder = append(tempOrder, o[(k-1)/2])
+				}
+				tempOrderLen := RouteLength(tempOrder, start, end, m, pathInfo)
+				if tempOrderLen < realMin {
+					realMin = tempOrderLen
+					newOrder = tempOrder
+				}
+			}
+		} else {
+			break
+		}
+	}
+	return newOrder
 }
 
 // BnBOrderOptimizer Branch and Bound Order Optimizer
