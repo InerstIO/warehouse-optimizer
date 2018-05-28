@@ -147,6 +147,40 @@ func buildEdgeMatrixBnB(o Order, start, end Point, m map[int]Product, pathInfo m
 	return matrix
 }
 
+func buildEdgeMatrixBnBLR(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) [][]float64 {
+	prods := []Product{Product{Pos: start, pseudo: true, pseudoIn: end}}
+	for _, p := range o {
+		prod := m[p.prodID]
+		prod.orderID = p.orderID
+		prods = append(prods, prod)
+	}
+	matrix := make([][]float64, len(prods)*2-1)
+	for i := range matrix {
+		matrix[i] = make([]float64, len(prods)*2-1)
+	}
+	var length float64
+	pm := []int{1, -1}
+	for j := range matrix {
+		for i := range matrix[j] {
+			if (i+1)/2 != (j+1)/2 {
+				src := prods[(j+1)/2].Pos
+				if !prods[(j+1)/2].pseudo {
+					src.X += pm[j%2]
+				}
+				dest := prods[(i+1)/2].Pos
+				if !prods[(i+1)/2].pseudo {
+					dest.X += pm[i%2]
+				}
+				length = pathInfo[src][dest]
+				matrix[j][i] = length
+			} else {
+				matrix[j][i] = math.Inf(1)
+			}
+		}
+	}
+	return matrix
+}
+
 // BnBOrderOptimizer Branch and Bound Order Optimizer
 func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64, timeLimit float64) Order {
 	t := time.Now()
