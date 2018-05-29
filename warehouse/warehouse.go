@@ -33,7 +33,7 @@ type Product struct {
 	pseudo     bool
 	pseudoIn   Point
 	pseudoOut  Point
-	orderID	int
+	OrderID	int
 	//num int
 }
 
@@ -331,7 +331,7 @@ func NNIOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 	prods := []Product{pseudoProd}
 	for _, p := range o {
 		prod := m[p.ProdID]
-		prod.orderID = p.OrderID
+		prod.OrderID = p.OrderID
 		prods = append(prods, prod)
 	}
 	iter := len(prods)
@@ -413,7 +413,7 @@ func nearestNeighborRing(prods []Product, src Point, srcProd Product, pathInfo m
 	prodsOrder = append(prodsOrder[startIndex+1:], prodsOrder[:startIndex]...)
 	var order Order
 	for _, prod := range prodsOrder {
-		order = append(order, Item{prod.id, prod.orderID})
+		order = append(order, Item{prod.id, prod.OrderID})
 	}
 	return order
 }
@@ -530,11 +530,18 @@ func Route2String(order Order, start, end Point, m map[int]Product) string {
 	return s
 }
 
+type routeOrder struct {
+	Paths []Path
+	Products [][]Product
+}
+
 // Routes2JSON returns the JSON encoding
 func Routes2JSON(orders []Order, start, end Point, m map[int]Product) []byte {
 	var paths []Path
+	var products [][]Product
 	for _, order := range orders{
 		var path Path
+		var product []Product
 		dest := FindDest(start, m[order[0].ProdID])
 		path = append(path, FindPath(start, dest)...)
 		var src Point
@@ -546,8 +553,16 @@ func Routes2JSON(orders []Order, start, end Point, m map[int]Product) []byte {
 		src = dest
 		path = append(path, FindPath(src, end)...)
 		paths = append(paths, path)
+		for _, prod := range order {
+			p := m[prod.ProdID]
+			p.OrderID = prod.OrderID
+			product = append(product, p)
+		}
+		products = append(products, product)
 	}
-	b, err := json.Marshal(paths)
+
+	ro := routeOrder{paths, products}
+	b, err := json.Marshal(ro)
 	if err != nil {
 		log.Fatalln("error converting to JSON:", err)
 	}

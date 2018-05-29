@@ -153,7 +153,7 @@ func buildEdgeMatrixBnB(o Order, start, end Point, m map[int]Product, pathInfo m
 	prods := []Product{Product{Pos: start, pseudo: true, pseudoIn: end}}
 	for _, p := range o {
 		prod := m[p.ProdID]
-		prod.orderID = p.OrderID
+		prod.OrderID = p.OrderID
 		prods = append(prods, prod)
 	}
 	matrix := make([][]float64, len(prods))
@@ -184,7 +184,7 @@ func buildEdgeMatrixBnBLR(o Order, start, end Point, m map[int]Product, pathInfo
 	prods := []Product{Product{Pos: start, pseudo: true, pseudoIn: end}}
 	for _, p := range o {
 		prod := m[p.ProdID]
-		prod.orderID = p.OrderID
+		prod.OrderID = p.OrderID
 		prods = append(prods, prod)
 	}
 	matrix := make([][]float64, len(prods)*2-1)
