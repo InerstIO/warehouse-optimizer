@@ -37,10 +37,10 @@ type Product struct {
 	//num int
 }
 
-// Item defines prodID and orderID
+// Item defines ProdID and OrderID
 type Item struct {
-	prodID	int
-	orderID	int
+	ProdID	int
+	OrderID	int
 }
 
 // Point defines the location of a point
@@ -56,7 +56,7 @@ type Order []Item
 
 func (o Order) Len() int           { return len(o) }
 func (o Order) Swap(i, j int)      { o[i], o[j] = o[j], o[i] }
-func (o Order) Less(i, j int) bool { return o[i].prodID < o[j].prodID }
+func (o Order) Less(i, j int) bool { return o[i].ProdID < o[j].ProdID }
 
 //ReadCSV returns a 2D array of string from the csv file
 func ReadCSV(path string) ([][]string, error) {
@@ -159,8 +159,8 @@ func ParesOrderInfo(path string) []Order {
 		order := make(Order, len(s))
 		for i := range s {
 			s[i] = strings.TrimSpace(s[i])
-			order[i].prodID, err = strconv.Atoi(s[i])
-			order[i].orderID = j + 1
+			order[i].ProdID, err = strconv.Atoi(s[i])
+			order[i].OrderID = j + 1
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -213,11 +213,11 @@ func ReadOrder(m map[int]Product) []Order {
 		s[i] = strings.TrimSpace(s[i])
 		var pid int
 		pid, err = strconv.Atoi(s[i])
-		order[i].prodID = pid
+		order[i].ProdID = pid
 		if err != nil {
 			log.Fatal(err)
 		}
-		_, ok := m[order[i].prodID]
+		_, ok := m[order[i].ProdID]
 		if !ok {
 			log.Fatalf("Item id %v not exist.", order[i])
 		}
@@ -302,12 +302,12 @@ func NearestNeighbourOrderOptimizer(o Order, start, end Point, m map[int]Product
 	src := start
 	for len(ord) > 0 {
 		minIndex := 0
-		dest := FindDest(src, m[ord[0].prodID])
+		dest := FindDest(src, m[ord[0].ProdID])
 		length := pathInfo[src][dest]
 		min := length
 		minDest := dest
 		for i, prod := range ord[1:] {
-			dest = FindDest(src, m[prod.prodID])
+			dest = FindDest(src, m[prod.ProdID])
 			length = pathInfo[src][dest]
 			if min > math.Min(min, length) {
 				min = length
@@ -330,8 +330,8 @@ func NNIOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 	minTotal := math.Inf(1)
 	prods := []Product{pseudoProd}
 	for _, p := range o {
-		prod := m[p.prodID]
-		prod.orderID = p.orderID
+		prod := m[p.ProdID]
+		prod.orderID = p.OrderID
 		prods = append(prods, prod)
 	}
 	iter := len(prods)
@@ -422,12 +422,12 @@ func nearestNeighborRing(prods []Product, src Point, srcProd Product, pathInfo m
 func RouteLength(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) float64 {
 	var length float64
 	var prevPos Point
-	pos := FindDest(start, m[o[0].prodID])
+	pos := FindDest(start, m[o[0].ProdID])
 	prevPos = pos
 	length += pathInfo[start][pos]
 	for i := range o[1:len(o)] {
 		prevPos = pos
-		pos = FindDest(prevPos, m[o[i+1].prodID])
+		pos = FindDest(prevPos, m[o[i+1].ProdID])
 		length += pathInfo[prevPos][pos]
 	}
 	length += pathInfo[pos][end]
@@ -440,21 +440,21 @@ func RouteEffort(o Order, start, end Point, m map[int]Product, pathInfo map[Poin
 	var weight float64
 	var prevPos Point
 	var missWeightData bool
-	pos := FindDest(start, m[o[0].prodID])
+	pos := FindDest(start, m[o[0].ProdID])
 	prevPos = pos
 	effort += pathInfo[start][pos] * weight
 	for i := range o[1:len(o)] {
 		prevPos = pos
-		pos = FindDest(prevPos, m[o[i+1].prodID])
-		if m[o[i].prodID].wAvail {
-			weight += m[o[i].prodID].w
+		pos = FindDest(prevPos, m[o[i+1].ProdID])
+		if m[o[i].ProdID].wAvail {
+			weight += m[o[i].ProdID].w
 		} else {
 			missWeightData = true
 		}
 		effort += pathInfo[prevPos][pos] * weight
 	}
-	if m[o[len(o)-1].prodID].wAvail {
-		weight += m[o[len(o)-1].prodID].w
+	if m[o[len(o)-1].ProdID].wAvail {
+		weight += m[o[len(o)-1].ProdID].w
 	} else {
 		missWeightData = true
 	}
@@ -466,7 +466,7 @@ func RouteEffort(o Order, start, end Point, m map[int]Product, pathInfo map[Poin
 func OrderWeight(o Order, m map[int]Product) float64 {
 	var weight float64
 	for _, i := range o {
-		weight += m[i.prodID].w
+		weight += m[i.ProdID].w
 	}
 	return weight
 }
@@ -515,15 +515,15 @@ func PathLength(path Path) float64 {
 
 // Route2String returns the string representation of the route
 func Route2String(order Order, start, end Point, m map[int]Product) string {
-	dest := FindDest(start, m[order[0].prodID])
+	dest := FindDest(start, m[order[0].ProdID])
 	s := fmt.Sprintf("%v->", FindPath(start, dest))
-	s += fmt.Sprintf("[pick up %v from %v]->", order[0], m[order[0].prodID].Pos)
+	s += fmt.Sprintf("[pick up %v from %v]->", order[0], m[order[0].ProdID].Pos)
 	var src Point
 	for _, prod := range order[1:] {
 		src = dest
-		dest = FindDest(src, m[prod.prodID])
+		dest = FindDest(src, m[prod.ProdID])
 		s += fmt.Sprintf("%v->", FindPath(src, dest))
-		s += fmt.Sprintf("[pick up %v from %v]->", prod, m[prod.prodID].Pos)
+		s += fmt.Sprintf("[pick up %v from %v]->", prod, m[prod.ProdID].Pos)
 	}
 	src = dest
 	s += fmt.Sprint(FindPath(src, end))
@@ -535,12 +535,12 @@ func Routes2JSON(orders []Order, start, end Point, m map[int]Product) []byte {
 	var paths []Path
 	for _, order := range orders{
 		var path Path
-		dest := FindDest(start, m[order[0].prodID])
+		dest := FindDest(start, m[order[0].ProdID])
 		path = append(path, FindPath(start, dest)...)
 		var src Point
 		for _, prod := range order[1:] {
 			src = dest
-			dest = FindDest(src, m[prod.prodID])
+			dest = FindDest(src, m[prod.ProdID])
 			path = append(path, FindPath(src, dest)...)
 		}
 		src = dest
@@ -581,7 +581,7 @@ func (o Order) String() string {
 func Order2csv(o Order) []string {
 	var ls []string
 	for _, prod := range o {
-		ls = append(ls, strconv.Itoa(prod.prodID))
+		ls = append(ls, strconv.Itoa(prod.ProdID))
 	}
 	return ls
 }

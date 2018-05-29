@@ -152,8 +152,8 @@ func checkNextLR(dest int, parent *vertex, infSlice []float64) vertex {
 func buildEdgeMatrixBnB(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) [][]float64 {
 	prods := []Product{Product{Pos: start, pseudo: true, pseudoIn: end}}
 	for _, p := range o {
-		prod := m[p.prodID]
-		prod.orderID = p.orderID
+		prod := m[p.ProdID]
+		prod.orderID = p.OrderID
 		prods = append(prods, prod)
 	}
 	matrix := make([][]float64, len(prods))
@@ -183,8 +183,8 @@ func buildEdgeMatrixBnB(o Order, start, end Point, m map[int]Product, pathInfo m
 func buildEdgeMatrixBnBLR(o Order, start, end Point, m map[int]Product, pathInfo map[Point]map[Point]float64) [][]float64 {
 	prods := []Product{Product{Pos: start, pseudo: true, pseudoIn: end}}
 	for _, p := range o {
-		prod := m[p.prodID]
-		prod.orderID = p.orderID
+		prod := m[p.ProdID]
+		prod.orderID = p.OrderID
 		prods = append(prods, prod)
 	}
 	matrix := make([][]float64, len(prods)*2-1)

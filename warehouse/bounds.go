@@ -11,8 +11,8 @@ func buildEdgeMatrix(o Order, start, end Point, m map[int]Product, pathInfo map[
 		prods = append(prods, Product{Pos: end, pseudo: true, pseudoIn: end})
 	}
 	for _, p := range o {
-		prod := m[p.prodID]
-		prod.orderID = p.orderID
+		prod := m[p.ProdID]
+		prod.orderID = p.OrderID
 		prods = append(prods, prod)
 	}
 	matrix := make([][]float64, len(prods))
