@@ -600,3 +600,7 @@ func Order2csv(o Order) []string {
 	}
 	return ls
 }
+
+func (i Item) String() string {
+	return fmt.Sprintf("prodID: %v in order#%v", i.ProdID, i.OrderID)
+}
