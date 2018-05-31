@@ -491,9 +491,17 @@ func FindPath(src Point, dest Point) Path {
 	case src.X == dest.X:
 		path = []Point{src, dest}
 	case src.Y%2 == 1 && src.Y < dest.Y:
-		path = []Point{src, {src.X, src.Y + 1}, {dest.X, src.Y + 1}, dest}
+		if src.Y + 1 == dest.Y {
+			path = []Point{src, {src.X, src.Y + 1}, dest}
+		} else {
+			path = []Point{src, {src.X, src.Y + 1}, {dest.X, src.Y + 1}, dest}
+		}
 	case src.Y%2 == 1 && src.Y >= dest.Y:
-		path = []Point{src, {src.X, src.Y - 1}, {dest.X, src.Y - 1}, dest}
+		if src.Y - 1 == dest.Y {
+			path = []Point{src, {src.X, src.Y - 1}, dest}
+		} else {
+			path = []Point{src, {src.X, src.Y - 1}, {dest.X, src.Y - 1}, dest}
+		}
 	case src.Y == dest.Y:
 		path = []Point{src, dest}
 	default:
