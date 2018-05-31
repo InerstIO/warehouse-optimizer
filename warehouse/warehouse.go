@@ -494,6 +494,8 @@ func FindPath(src Point, dest Point) Path {
 		path = []Point{src, {src.X, src.Y + 1}, {dest.X, src.Y + 1}, dest}
 	case src.Y%2 == 1 && src.Y >= dest.Y:
 		path = []Point{src, {src.X, src.Y - 1}, {dest.X, src.Y - 1}, dest}
+	case src.Y == dest.Y:
+		path = []Point{src, dest}
 	default:
 		path = []Point{src, {dest.X, src.Y}, dest}
 	}
@@ -530,9 +532,11 @@ func Route2String(order Order, start, end Point, m map[int]Product) string {
 	return s
 }
 
-type routeOrder struct {
+type RouteOrder struct {
 	Paths []Path
 	Products [][]Product
+	Orders []Order
+	Start, End Point
 }
 
 // Routes2JSON returns the JSON encoding
@@ -561,7 +565,7 @@ func Routes2JSON(orders []Order, start, end Point, m map[int]Product) []byte {
 		products = append(products, product)
 	}
 
-	ro := routeOrder{paths, products}
+	ro := RouteOrder{paths, products, orders, start, end}
 	b, err := json.Marshal(ro)
 	if err != nil {
 		log.Fatalln("error converting to JSON:", err)
