@@ -3,7 +3,6 @@ package warehouse
 import (
 	"bufio"
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"log"
 	"math"
@@ -547,8 +546,8 @@ type RouteOrder struct {
 	Start, End Point
 }
 
-// Routes2JSON returns the JSON encoding
-func Routes2JSON(orders []Order, start, end Point, m map[int]Product) []byte {
+// Orders2Routes returns the JSON encoding
+func Orders2Routes(orders []Order, start, end Point, m map[int]Product) RouteOrder {
 	var paths []Path
 	var products [][]Product
 	for _, order := range orders{
@@ -574,11 +573,12 @@ func Routes2JSON(orders []Order, start, end Point, m map[int]Product) []byte {
 	}
 
 	ro := RouteOrder{paths, products, orders, start, end}
-	b, err := json.Marshal(ro)
+	return ro
+	/*b, err := json.Marshal(ro)
 	if err != nil {
 		log.Fatalln("error converting to JSON:", err)
 	}
-	return b
+	return b*/
 }
 
 func (p Point) String() string {
