@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
+	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -58,6 +59,14 @@ func main() {
 		strInput = strings.TrimSpace(strInput)
 		iter, err = strconv.Atoi(strInput)
 	}
+	fmt.Println("What's the weight limit of orders? (0 for no limit)")
+	_, err = fmt.Scan(&strInput)
+	if err != nil {
+		log.Fatal(err)
+	}
+	strInput = strings.TrimSpace(strInput)
+	var weight float64
+	weight, err = strconv.ParseFloat(strInput, 64)
 
 	for {
 		fmt.Println("Type 1 to manual input, type 2 to file input.")
@@ -103,19 +112,43 @@ func main() {
 		}
 		defer outputFile.Close()
 
-		var ods []warehouse.Order
-		for i, order := range orders {
-			var result warehouse.Order
-			if op == 0 {
-				result = warehouse.NNIOrderOptimizer(order, start, end, m, pathInfo)
-			} else {
-				result = warehouse.BnBOrderOptimizer(order, start, end, m, pathInfo, timeLimit)
+		var reOrders [][]warehouse.Order
+		if weight > 0 {
+			orders = warehouse.MergeOrders(orders, m, weight)
+			for _, o := range orders {
+				reOrders = append(reOrders, warehouse.SplitOrder(o, m, weight))
 			}
-			ods = append(ods, result)
-			fmt.Println(i)
+		} else {
+			for i,o := range orders {
+				reOrders[i] = []warehouse.Order{o}
+			}
 		}
-		if err := ioutil.WriteFile(outputPath, warehouse.Routes2JSON(ods, start, end, m), 0777); err != nil {
-			log.Fatalln("error writing results to json:", err)
+
+		var optimized [][]warehouse.Order
+		for _, reOs := range reOrders {
+			var ods []warehouse.Order
+			for _, order := range reOs {
+				var result warehouse.Order
+				if op == 0 {
+					result = warehouse.NNIOrderOptimizer(order, start, end, m, pathInfo)
+				} else {
+					result = warehouse.BnBOrderOptimizer(order, start, end, m, pathInfo, timeLimit)
+				}
+				ods = append(ods, result)
+			}
+			optimized = append(optimized, ods)
+		}
+
+		var ros []warehouse.RouteOrder
+		for _, o := range optimized {
+			ros = append(ros, warehouse.Orders2Routes(o, start, end, m))
+		}
+		if rosB, err := json.Marshal(ros); err != nil {
+			log.Fatalln("error marshalling:", err)
+		} else {
+			if err := ioutil.WriteFile(outputPath, rosB, 0777); err != nil {
+				log.Fatalln("error writing results to json:", err)
+			}
 		}
 	}
 
