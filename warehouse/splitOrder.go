@@ -46,6 +46,9 @@ func ByItemWeightReverse(i1, i2 *Item, m map[int]Product) bool {
 
 // SplitOrder splits the order that has total weight larger than max
 func SplitOrder(order Order, m map[int]Product, max float64) []Order {
+	if OrderWeight(order, m) <= max {
+		return []Order{order}
+	}
 	reOrders := make([]Order, 1)
 	ordersWeight := []float64{0.0}
 	ByI(ByItemWeightReverse).Sort(order, m)
