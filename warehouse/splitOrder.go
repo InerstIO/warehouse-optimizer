@@ -57,7 +57,7 @@ func SplitOrder(order Order, m map[int]Product, max float64) []Order {
 		fit = false
 		for j := range reOrders {
 			iw := m[i.ProdID].w
-			if ordersWeight[j]+iw <= max || len(reOrders[j]) == 0 {
+			if (ordersWeight[j]+iw <= max && len(reOrders[j]) < maxItem) || len(reOrders[j]) == 0 {
 				reOrders[j] = append(reOrders[j], i)
 				ordersWeight[j] += iw
 				fit = true
