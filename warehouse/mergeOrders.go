@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	max_item = 15
+	maxItem = 15
 )
 
 // By is the type of a "less" function that defines the ordering of its Order arguments.
@@ -58,7 +58,7 @@ func MergeOrders(orders []Order, m map[int]Product, max float64) []Order {
 		fit = false
 		for j := range reOrders {
 			ow := OrderWeight(o, m)
-			if (ordersWeight[j]+ow <= max && len(reOrders[j]) + len(o) <= max_item ) || len(reOrders[j]) == 0 {
+			if (ordersWeight[j]+ow <= max && len(reOrders[j]) + len(o) <= maxItem ) || len(reOrders[j]) == 0 {
 				reOrders[j] = append(reOrders[j], o...)
 				ordersWeight[j] += ow
 				fit = true
