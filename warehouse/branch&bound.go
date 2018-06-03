@@ -127,13 +127,14 @@ func exploreLR(src vertex, dest int, m [][]float64, infSlice []float64) [][]floa
 	return newMatrix
 }
 
-func checkNext(dest int, parent *vertex, infSlice []float64) vertex {
-	matrix, cost := reduceMatrix(explore(*parent, dest, parent.matrix, infSlice))
+func checkNext(dest int, parent *vertex, infSlice []float64, oriRM [][]float64) vertex {
+	pM := reBuildMatrix(parent.path, oriRM)
+	_, cost := reduceMatrix(explore(*parent, dest, pM, infSlice))
 	newPath := make([]int, len(parent.path))
 	copy(newPath, parent.path)
 	return vertex{
-		matrix: matrix,
-		cost:   parent.cost + cost + parent.matrix[parent.path[len(parent.path)-1]][dest],
+		//matrix: matrix,
+		cost:   parent.cost + cost + pM[parent.path[len(parent.path)-1]][dest],
 		path:   append(newPath, dest),
 	}
 }
@@ -282,8 +283,9 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 	}
 	var cost float64
 	matrix, cost = reduceMatrix(matrix)
+	oriRM := matrix	
 	initial := vertex{
-		matrix: matrix,
+		//matrix: matrix,
 		cost:   cost,
 		path:   []int{0},
 	}
@@ -300,12 +302,13 @@ func BnBOrderOptimizer(o Order, start, end Point, m map[int]Product, pathInfo ma
 		var v vertex
 		remain := 0
 		if p.cost <= min {
-			for i := range p.matrix {
-				if math.IsInf(p.matrix[i][0], 1) {
+			pM := reBuildMatrix(p.path, oriRM)
+			for i := range pM {
+				if math.IsInf(pM[i][0], 1) {
 					continue
 				}
 				remain++
-				cv := checkNext(i, p, infSlice)
+				cv := checkNext(i, p, infSlice, oriRM)
 				if cv.cost <= min {
 					heap.Push(&pq, &cv)
 				}
@@ -351,13 +354,39 @@ func reconstructCost(o Order, ori Order, start, end Point, m map[int]Product, pa
 	}
 	var cost float64
 	matrix, cost = reduceMatrix(matrix)
+	oriRM := matrix	
 	p := vertex{
-		matrix: matrix,
+		//matrix: matrix,
 		cost:   cost,
 		path:   []int{0},
 	}
 	for _, i := range indices {
-		p = checkNext(i+1, &p, infSlice)
+		p = checkNext(i+1, &p, infSlice, oriRM)
 	}
 	return p.cost
+}
+
+
+func reexplore(path []int, dest int, m [][]float64, infSlice []float64) [][]float64 {
+	newMatrix := deepCopy2DMatrix(m)
+	newMatrix[path[len(path)-1]] = infSlice
+	for j := 0; j < len(newMatrix); j++ {
+		newMatrix[j][dest] = math.Inf(1)
+	}
+	for _, p := range path {
+		newMatrix[dest][p] = math.Inf(1)
+	}
+	return newMatrix
+}
+
+func reBuildMatrix(path []int, oriRM [][]float64) [][]float64 {
+	infSlice := make([]float64, len(oriRM[0]))
+	for i := range infSlice {
+		infSlice[i] = math.Inf(1)
+	}
+	nextM := oriRM
+	for i, d := range path[1:] {
+		nextM, _ = reduceMatrix(reexplore(path[:i+1], d, nextM, infSlice))
+	}
+	return nextM
 }
